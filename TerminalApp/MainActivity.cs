@@ -13,6 +13,7 @@ using AndroidX.Core.SplashScreen;
 using Android.Text;
 using System.Threading.Tasks;
 
+
 namespace CommAndroid
 {
     [Activity(Label = "@string/app_name", Theme = "@style/SplashTheme", MainLauncher = true, Icon = "@mipmap/terminalappicon")]
