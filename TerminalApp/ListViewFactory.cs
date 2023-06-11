@@ -8,7 +8,7 @@ using Android.Widget;
 using System.Collections.Generic;
 
 
-namespace TerminalApp
+namespace CommAndroid
 {
 
 

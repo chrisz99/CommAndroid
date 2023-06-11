@@ -23,7 +23,7 @@ using Android.Media;
 using Android.App.Usage;
 
 
-namespace TerminalApp
+namespace CommAndroid
 {
     public class TerminalCommands
     {

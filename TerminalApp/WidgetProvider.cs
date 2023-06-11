@@ -10,7 +10,7 @@ using Android.Widget;
 
 
 
-namespace TerminalApp
+namespace CommAndroid
 {
 
     [BroadcastReceiver(Label = "CommAndroid", Exported = true, Enabled = true, Name = "com.company.terminalapp.WidgetProvider",Icon ="@mipmap/terminalappicon")]

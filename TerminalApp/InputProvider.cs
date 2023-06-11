@@ -8,7 +8,7 @@ using Android.Views.InputMethods;
 using Android.Widget;
 
 
-namespace TerminalApp
+namespace CommAndroid
 {
     //Label class as activity for Manifest, set theme to custom transparent theme
     [Activity(Label = "TransparentPopupActivity",LaunchMode =LaunchMode.SingleInstance,ScreenOrientation =ScreenOrientation.Portrait, Theme = "@style/Theme.AppCompat.Transparent.NoActionBar")]

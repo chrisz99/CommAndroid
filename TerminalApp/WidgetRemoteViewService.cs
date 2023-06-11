@@ -6,7 +6,7 @@ using AndroidX.Core.Widget;
 //Declare permissions in android manifest
 
 
-namespace TerminalApp
+namespace CommAndroid
 {
 
     //Handles the creation of the List View Factory Class --> Function to return our ListViewFactory
