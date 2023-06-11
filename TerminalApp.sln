@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33723.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerminalApp", "TerminalApp\TerminalApp.csproj", "{EFAA846F-23C7-4082-BBA0-5ECF1BC8481A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E7FD3831-077D-41F1-86B4-454C0AEF9C3E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EFAA846F-23C7-4082-BBA0-5ECF1BC8481A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFAA846F-23C7-4082-BBA0-5ECF1BC8481A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFAA846F-23C7-4082-BBA0-5ECF1BC8481A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{EFAA846F-23C7-4082-BBA0-5ECF1BC8481A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFAA846F-23C7-4082-BBA0-5ECF1BC8481A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFAA846F-23C7-4082-BBA0-5ECF1BC8481A}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D8166E92-CD9B-45BE-8308-630B2707132A}
+	EndGlobalSection
+EndGlobal

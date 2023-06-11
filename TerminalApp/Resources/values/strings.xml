@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">CommAndroid</string>
+    <string name="action_settings">Settings</string>
+	<string name="empty_string">Empty View</string>
+    <string name="terminal_title">Terminal Window</string>
+	<string name="terminal_heading">CommAndroid</string>
+	<string name="commandlist_heading">Command List:</string>
+	<string name="credits">Created by ChrisZ99</string>
+</resources>

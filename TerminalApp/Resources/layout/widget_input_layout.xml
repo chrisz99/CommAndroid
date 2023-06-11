@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:orientation="vertical">
+
+
+    <LinearLayout
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:background="@drawable/widgetbackground"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+
+              <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Terminal Input"
+            android:textStyle="italic"
+            android:fontFamily="sans-serif"
+            android:paddingStart="10dp"
+            android:textColor="@android:color/black"
+            android:shadowColor="#52db02"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+                android:layout_marginTop="2dp"
+               
+              
+            />
+        
+        
+        />
+
+
+        </LinearLayout>
+
+
+
+        <!--Main Layout for the Terminal Window -->
+
+        <LinearLayout
+            android:layout_width="170dp"
+            android:layout_height="70dp"
+            android:orientation="vertical"
+            android:background="@drawable/inputlayoutbackground"
+            android:layout_gravity="center"
+            android:layout_marginStart="-85dp"
+            android:layout_marginBottom="-5dp">
+
+            <!--Layout for the Text Input and Label-->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CMD:"
+                    android:fontFamily="monospace"
+                    android:layout_gravity="center_vertical"
+                    android:textColor="#52db02"/>
+
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="#52db02"
+                    android:id="@+id/cmd_input"
+                    android:textSize="14sp"
+                    android:fontFamily="monospace"
+                    android:inputType="textImeMultiLine"
+                    android:imeOptions="actionDone|actionSend"
+                    android:layout_gravity="center"
+                    android:textCursorDrawable="@drawable/customcursor"
+                    android:background="@android:color/transparent"
+                    android:layout_marginStart="4dp"
+                    
+                    />
+
+
+
+            </LinearLayout>
+
+
+
+
+
+
+
+        </LinearLayout>
+
+
+
+    </LinearLayout>
+
+
+
+
+
+</LinearLayout>
