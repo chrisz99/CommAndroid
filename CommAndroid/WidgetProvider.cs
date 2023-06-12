@@ -38,7 +38,7 @@ namespace CommAndroid
 
 
 
-                appWidgetManager.NotifyAppWidgetViewDataChanged(appwidgetId, Resource.Id.listView1);
+
                 // Update all instances of the widget with the new remote views
                 appWidgetManager.UpdateAppWidget(appwidgetId, widgetView);
           
@@ -56,10 +56,8 @@ namespace CommAndroid
         {
             //Initialize our widget view, basically pointing to our main widget layout xml
             var widgetView = new RemoteViews(context.PackageName, Resource.Layout.widget_layout);
-            var listView = new RemoteViews(context.PackageName, Resource.Layout.listview_layout);
-
-            
-
+           
+           
             //Initializing an intent of our WidgetRemoteViewService, to handle the creation of our list view factory
             //Instructing Widget to use our WidgetRemoteViewService with our ListView
             Intent listViewIntent = new Intent(context, typeof(WidgetRemoteViewService));
@@ -76,8 +74,8 @@ namespace CommAndroid
 
 
             // Initializing pending intents for the button click actions
-            var pendingIntent = PendingIntent.GetBroadcast(context, 5555533, clickIntent, PendingIntentFlags.Immutable);
-            var pendingDeleteIntent = PendingIntent.GetBroadcast(context, 55522111, deleteIntent, PendingIntentFlags.Immutable);
+            var pendingIntent = PendingIntent.GetBroadcast(context, 5555533, clickIntent, PendingIntentFlags.Mutable);
+            var pendingDeleteIntent = PendingIntent.GetBroadcast(context, 55522111, deleteIntent, PendingIntentFlags.Mutable);
 
             // Associating the pending intents with the respective buttons in the widget layout
             widgetView.SetOnClickPendingIntent(Resource.Id.delete_button, pendingDeleteIntent);
@@ -104,7 +102,11 @@ namespace CommAndroid
             //Create a new list factory and view for our widget
             //Create an AppWidgetManager, reference component name, and get appWidgetIds
             listViewFactory = new ListViewFactory(context);
-            var widgetView = new RemoteViews(context.PackageName, Resource.Layout.widget_layout);
+
+            //var widgetView = new RemoteViews(context.PackageName, Resource.Layout.widget_layout);
+
+            var widgetView = views;
+
             AppWidgetManager appWidgetManager = AppWidgetManager.GetInstance(context);
             ComponentName componentName = new ComponentName(context, Java.Lang.Class.FromType(typeof(WidgetProvider)).Name);
             int[] appWidgetIds = appWidgetManager.GetAppWidgetIds(componentName);
