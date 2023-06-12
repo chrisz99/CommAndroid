@@ -13,8 +13,8 @@ using Android.Widget;
 namespace CommAndroid
 {
 
-    [BroadcastReceiver(Label = "CommAndroid", Exported = true, Enabled = true, Name = "com.company.terminalapp.WidgetProvider",Icon ="@mipmap/terminalappicon")]
-    [IntentFilter(new string[] { "android.appwidget.action.APPWIDGET_UPDATE", "android.widget.RemoteViewsService" })]
+    [BroadcastReceiver(Label = "CommAndroid", Exported = false, Enabled = true, Name = "com.company.terminalapp.WidgetProvider",Icon ="@mipmap/terminalappicon")]
+    [IntentFilter(new string[] { "android.appwidget.action.APPWIDGET_UPDATE" })]
     [MetaData("android.appwidget.provider", Resource = "@xml/my_widget")]
 
 
@@ -153,8 +153,6 @@ namespace CommAndroid
             //Initialize view for our widget layout
             base.OnReceive(context, intent);
             var widgetView = new RemoteViews(context.PackageName, Resource.Layout.widget_layout);
-
-
 
             //Command Click
             if (intent.Action == "com.company.terminalapp.WIDGET_BUTTON_CLICK")
