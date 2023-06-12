@@ -34,13 +34,15 @@ namespace CommAndroid
             foreach (int appwidgetId in appWidgetIds)
             {
                 // Build the remote views for the widget
-                var widgetView = BuildRemoteViews(context, appwidgetId);
-
-                
+                var widgetView = BuildRemoteViews(context);
 
 
+
+                appWidgetManager.NotifyAppWidgetViewDataChanged(appwidgetId, Resource.Id.listView1);
                 // Update all instances of the widget with the new remote views
                 appWidgetManager.UpdateAppWidget(appwidgetId, widgetView);
+          
+
 
             }
 
@@ -50,7 +52,7 @@ namespace CommAndroid
 
 
         //Build the widget view, returns to the update method
-        public RemoteViews BuildRemoteViews(Context context, int appWidgetIds)
+        public RemoteViews BuildRemoteViews(Context context)
         {
             //Initialize our widget view, basically pointing to our main widget layout xml
             var widgetView = new RemoteViews(context.PackageName, Resource.Layout.widget_layout);
