@@ -103,8 +103,6 @@ namespace CommAndroid
             //Create an AppWidgetManager, reference component name, and get appWidgetIds
             listViewFactory = new ListViewFactory(context);
 
-            //var widgetView = new RemoteViews(context.PackageName, Resource.Layout.widget_layout);
-
             var widgetView = views;
 
             AppWidgetManager appWidgetManager = AppWidgetManager.GetInstance(context);
@@ -156,7 +154,12 @@ namespace CommAndroid
         {
             //Initialize view for our widget layout
             base.OnReceive(context, intent);
-            var widgetView = new RemoteViews(context.PackageName, Resource.Layout.widget_layout);
+
+            //var widgetView = new RemoteViews(context.PackageName, Resource.Layout.widget_layout);
+
+            //Rebuild the view, re-setting the intents ---> Goal is to fix bug where widget stops working after some time
+            //Either this or settings flags to mutable
+            var widgetView = BuildRemoteViews(context);
 
             //Command Click
             if (intent.Action == "com.company.terminalapp.WIDGET_BUTTON_CLICK")
