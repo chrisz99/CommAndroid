@@ -22,6 +22,7 @@ using Android.Appwidget;
 using Android.Media;
 using Android.App.Usage;
 using Android.OS.Storage;
+using System.Drawing;
 
 namespace CommAndroid
 {
@@ -29,7 +30,7 @@ namespace CommAndroid
     {
         //Helper String for printing the command list
         //Add Commands here to display in Terminal
-        public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "datclear 'appname'","stordat","coinflip" };
+        public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "rmdir 'path' 'name'", "datclear 'appname'","stordat","coinflip" };
 
 
         //Text Message Method
@@ -179,7 +180,7 @@ namespace CommAndroid
         private static string setReminderHelper(string[] arguments, Context context)
         {
 
-            if(arguments.Length >= 2)
+            if(arguments.Length == 2)
             {
                 //Initialize variables for time, reminder message
                 string time = arguments[0];
@@ -424,18 +425,30 @@ namespace CommAndroid
 
             return folderName + " successfully created";
         }
+
+    
   
         //Helper function to create a folder given a string[] args
         private static string createFolderHelper(string[] arguments)
         {
-            if (arguments.Length >= 2)
+            if (arguments.Length > 2)
+            {
+                string path = "";
+                if (arguments[0].ToLower() == "defaultpath")
+                    path = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
+                else
+                path = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
+                string[] folderNames = arguments.Skip(1).ToArray();
+                return "hoopla";
+            }
+            else if (arguments.Length == 2)
             {
                 string path = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
                 string folderName = arguments[1];
                 if (!Directory.Exists(path + "/" + folderName))
                     return createFolder((path + "/" + folderName), folderName);
                 else
-                    return "Invalid operation. " + folderName + " already exists";
+                    return "Invalid operation. " + folderName + " already exists.";
             }
             else if (arguments.Length == 1)
             {
@@ -443,13 +456,46 @@ namespace CommAndroid
                 if (!Directory.Exists(path))
                     return createFolder(path, arguments[0]);
                 else
-                    return "Invalid operation. " + arguments[0] + " already exists";
+                    return "Invalid operation. " + arguments[0] + " already exists.";
             }
             else
                 return "Invalid Syntax (mkdir 'path' 'name')";
 
       
         }
+
+        private static string deleteFolder(string path, string folderName)
+        {
+            Java.IO.File folder = new Java.IO.File(path);
+
+            if (folder.Exists())
+            {
+                Directory.Delete(path, true);
+                return folderName + " successfully deleted";
+            }
+                
+            else
+                return "Invalid Operation. " + folderName + " already exists.";
+        }
+
+        private static string deleteFolderHelper(string[] arguments)
+        {
+
+            if (arguments.Length == 2)
+            {
+                string defaultPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
+                string pathChosen = Path.Combine(defaultPath, arguments[1]);
+                return deleteFolder(pathChosen, arguments[1]);
+            }
+            else if (arguments.Length == 1)
+            {
+                string path = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
+                return deleteFolder(path, arguments[0]);
+            }
+            else
+                return "Invalid Syntax rmdir 'path' 'name'";
+        }
+
 
 
         //Main function that takes a command, (string), and breaks it up to see what method to fire
@@ -505,6 +551,10 @@ namespace CommAndroid
                     case "mkdir":
                         {
                             return createFolderHelper(arguments);
+                        }
+                    case "rmdir":
+                        {
+                            return deleteFolderHelper(arguments);
                         }
 
                     //Command List
