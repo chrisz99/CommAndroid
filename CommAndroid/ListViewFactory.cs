@@ -1,4 +1,5 @@
 ﻿
+using Android.App;
 using Android.Content;
 
 using Android.Graphics;
@@ -114,6 +115,10 @@ namespace CommAndroid
             {
                 remoteViews.SetViewVisibility(Resource.Id.blinking_dot, ViewStates.Gone);
             }
+
+            Intent fillInIntent = new Intent();
+            fillInIntent.PutExtra("command_text", items[position]);
+           remoteViews.SetOnClickFillInIntent(Resource.Id.listviewlayout, fillInIntent);
 
 
 

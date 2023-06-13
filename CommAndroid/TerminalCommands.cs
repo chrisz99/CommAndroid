@@ -21,7 +21,7 @@ using Android.Util;
 using Android.Appwidget;
 using Android.Media;
 using Android.App.Usage;
-
+using Android.OS.Storage;
 
 namespace CommAndroid
 {
@@ -29,7 +29,7 @@ namespace CommAndroid
     {
         //Helper String for printing the command list
         //Add Commands here to display in Terminal
-        public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'", "datclear 'appname'","coinflip" };
+        public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "datclear 'appname'","stordat","coinflip" };
 
 
         //Text Message Method
@@ -385,65 +385,21 @@ namespace CommAndroid
                 return "--> Tails";
         }
 
+        //Function to display available storage on device
+        //Added approximation sign because because past Android 12 grabbing this type of information became difficult
+        //Off by a bit
         private static string displayStorageInfo(Context context)
         {
-            long totalSize = 0;
-            StorageStatsManager storageStatsManager = (StorageStatsManager)context.GetSystemService(Context.StorageStatsService);
-            PackageManager pm = context.PackageManager;
-            IList<ApplicationInfo> installedApps = pm.GetInstalledApplications(PackageInfoFlags.MatchAll);
 
-            foreach (ApplicationInfo appInfo in installedApps)
-            {
-             
-             
+            Java.IO.File file = new Java.IO.File(Android.OS.Environment.ExternalStorageDirectory.Path);
+            var freeSpace = FormatFileSize(file.FreeSpace);
 
 
-                // Get the package information for the application
-                PackageInfo packageInfo = pm.GetPackageInfo(appInfo.PackageName, 0);
-                string packageName = packageInfo.PackageName;
-
-                // Get the path to the APK file
-                string apkPath = packageInfo.ApplicationInfo.SourceDir;
-                Java.Util.UUID dataPath = appInfo.StorageUuid;
-
-
- 
-
-                long appSize = GetFileSize(apkPath);
-
-                // Get the size of the APK file
-                long apkSize = new Java.IO.File(apkPath).Length();
-
-                totalSize += apkSize;
-            }
-
-            return "--> " + FormatFileSize(totalSize);
-
-
+            return "--> ~" + freeSpace + " free space available";
 
         }
-        private static long GetFileSize(string filePath)
-        {
-            long size = 0;
 
-            try
-            {
-                FileInfo fileInfo = new FileInfo(filePath);
-
-                if (fileInfo.Exists)
-                {
-                    size = fileInfo.Length;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle any exceptions that occur during the process
-                Console.WriteLine("Error calculating file size: " + ex.Message);
-            }
-
-            return size;
-        }
-
+        //Formats file size
         private static string FormatFileSize(long size)
         {
             if (size <= 0)
@@ -458,33 +414,41 @@ namespace CommAndroid
             return $"{adjustedSize:0.##} {units[digitGroups]}";
         }
 
-        private static long GetDirectorySize(string directoryPath)
+        //Function to create a folder given a path and folderName
+        private static string createFolder(string path, string folderName)
         {
-            long size = 0;
+            Java.IO.File folder = new Java.IO.File(path);
 
-            try
+            if (!folder.Exists())
+                folder.Mkdirs();
+
+            return folderName + " successfully created";
+        }
+  
+        //Helper function to create a folder given a string[] args
+        private static string createFolderHelper(string[] arguments)
+        {
+            if (arguments.Length >= 2)
             {
-                Java.IO.File directory = new Java.IO.File(directoryPath);
-
-                if (directory.Exists())
-                {
-                    Java.IO.File[] files = directory.ListFiles();
-
-                    foreach (Java.IO.File file in files)
-                    {
-                        if (file.IsFile)
-                            size += file.Length();
-                        else if (file.IsDirectory)
-                            size += GetDirectorySize(file.AbsolutePath);
-                    }
-                }
+                string path = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
+                string folderName = arguments[1];
+                if (!Directory.Exists(path + "/" + folderName))
+                    return createFolder((path + "/" + folderName), folderName);
+                else
+                    return "Invalid operation. " + folderName + " already exists";
             }
-            catch (Exception ex)
+            else if (arguments.Length == 1)
             {
-                Console.WriteLine("Error calculating directory size: " + ex.Message);
+                string path = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
+                if (!Directory.Exists(path))
+                    return createFolder(path, arguments[0]);
+                else
+                    return "Invalid operation. " + arguments[0] + " already exists";
             }
+            else
+                return "Invalid Syntax (mkdir 'path' 'name')";
 
-            return size;
+      
         }
 
 
@@ -537,6 +501,10 @@ namespace CommAndroid
                     case "stordat":
                         {
                             return displayStorageInfo(context);
+                        }
+                    case "mkdir":
+                        {
+                            return createFolderHelper(arguments);
                         }
 
                     //Command List

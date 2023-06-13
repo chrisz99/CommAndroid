@@ -31,7 +31,7 @@ namespace CommAndroid
                 {
                     string userInput = cmdText.Text;
                     Intent intent = new Intent(this, typeof(WidgetProvider));
-                    intent.SetAction("com.company.terminalapp.USER_INPUT_SUBMITTED");
+                    intent.SetAction("com.company.CommAndroid.USER_INPUT_SUBMITTED");
                     intent.PutExtra("user_input", userInput);
                     intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask); // Add the ClearTop and NewTask flags
                     SendBroadcast(intent);
