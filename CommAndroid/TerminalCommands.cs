@@ -431,24 +431,71 @@ namespace CommAndroid
         //Helper function to create a folder given a string[] args
         private static string createFolderHelper(string[] arguments)
         {
-            if (arguments.Length > 2)
-            {
-                string path = "";
-                if (arguments[0].ToLower() == "defaultpath")
-                    path = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
-                else
-                path = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
-                string[] folderNames = arguments.Skip(1).ToArray();
-                return "hoopla";
-            }
-            else if (arguments.Length == 2)
+
+            if (arguments.Length >= 2)
             {
                 string path = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
                 string folderName = arguments[1];
-                if (!Directory.Exists(path + "/" + folderName))
-                    return createFolder((path + "/" + folderName), folderName);
+                if (Directory.Exists(path))
+                {
+                    
+                        string result = "";
+                    string folderNameList = "";
+                        string[] folderNames = arguments.Skip(1).ToArray();
+                        List<string> alreadyExists = new List<string>();
+                        foreach(string folder in folderNames)
+                        {
+                            string combinedPathWithAddedFolder = Path.Combine(path, folder); 
+                            if (Directory.Exists(combinedPathWithAddedFolder))
+                            {
+                                alreadyExists.Add(combinedPathWithAddedFolder);
+                                result += folder + ", ";
+                            }
+                        folderNameList += folder + ", ";
+                        }
+
+                        if (alreadyExists.Count > 0)
+                            return "Invalid Operation. Folder " + folderNameList + " already exists.";
+                        else
+                        {
+                            foreach(string folder in folderNames)
+                            {
+                                string combinedPathWithAddedFolder = Path.Combine(path,folder);
+                                createFolder(combinedPathWithAddedFolder, folder);
+                            }
+                            return folderNameList + " were successfully created.";
+                        }
+
+                    
+                }
                 else
-                    return "Invalid operation. " + folderName + " already exists.";
+                {
+                    string result = "";
+                    string folderNameList = "";
+                    List<string> alreadyExists = new List<string>();
+                    foreach(string folder in arguments)
+                    {
+                        string combinedPathWithAddedFolder = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, folder);
+                        if (Directory.Exists(combinedPathWithAddedFolder))
+                        {
+                            alreadyExists.Add(folder);
+                            result += folder + ", ";
+                        }                       
+                        folderNameList += folder + ", ";
+                    }
+                    if (alreadyExists.Count > 0)
+                        return "Invalid Operation. Folder " + folderNameList + " already exists.";
+                    else
+                    {
+                        foreach(string folder in arguments)
+                        {
+                            string combinedPathWithAddedFolder = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, folder);
+                            createFolder(combinedPathWithAddedFolder, folder);
+                        }
+                        return folderNameList + " were successfully created.";
+                    }
+
+                }
             }
             else if (arguments.Length == 1)
             {
@@ -464,6 +511,7 @@ namespace CommAndroid
       
         }
 
+        //Function to delete a folder given a path, and a folderName
         private static string deleteFolder(string path, string folderName)
         {
             Java.IO.File folder = new Java.IO.File(path);
@@ -475,17 +523,110 @@ namespace CommAndroid
             }
                 
             else
-                return "Invalid Operation. " + folderName + " already exists.";
+                return "Invalid Operation. " + folderName + " doesn't exist.";
         }
 
+        //Delete folder helper function given a string[] args
         private static string deleteFolderHelper(string[] arguments)
         {
 
-            if (arguments.Length == 2)
+            if (arguments.Length >= 2)
             {
                 string defaultPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
-                string pathChosen = Path.Combine(defaultPath, arguments[1]);
-                return deleteFolder(pathChosen, arguments[1]);
+                if (Directory.Exists(defaultPath))
+                {
+                    string[] folderNames = arguments.Skip(1).ToArray();
+                    string result = "";
+                    int existCount = 0;
+                    string folderNameList = "";
+                    List<string> doesntExist = new List<string>();
+                    foreach (string folder in folderNames)
+                    {
+                        string checkPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath,folder);
+                        string combinedPath = Path.Combine(defaultPath, folder);
+                        if(!Directory.Exists(combinedPath))
+                        {
+                            doesntExist.Add(folder);
+                            result += folder + ", ";
+                        }
+                        if(Directory.Exists(checkPath))
+                        {
+                            existCount++;
+                        }
+                        folderNameList += folder + ", ";
+                    }
+
+                    if(existCount > 0)
+                    {
+                        List<string> doesntExist2 = new List<string>();
+                        string folderNameList2 = "";
+                        foreach (string folder in arguments)
+                        {                     
+                            string combinedPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, folder);
+                            if (!Directory.Exists(combinedPath))
+                            {
+                                doesntExist2.Add(folder);
+                                result += folder + ", ";
+                            }
+                            folderNameList2 += folder + ", ";
+                        }
+
+                        if (doesntExist2.Count > 0)
+                            return "Invalid Operation. Folder " + result + " doesn't exist.";
+                        else
+                        {
+                            foreach (string folder in arguments)
+                            {
+                                string combinedPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, folder);
+                                deleteFolder(combinedPath, folder);
+                            }
+                            return folderNameList2 + " were successfully deleted.";
+                        }
+                    }
+                    if (doesntExist.Count == 0)
+                    {
+                        foreach (string folder in folderNames)
+                        {
+                            string combinedPath = Path.Combine(defaultPath, folder);
+                            deleteFolder(combinedPath, folder);
+                        }
+                        return folderNameList + " were successfully deleted.";
+                    }
+                    else
+                        return "Invalid Operation. Folder " + result + " doesn't exist.";
+
+             
+                }
+                else
+                {
+                    List<string> doesntExist = new List<string>();
+                    string result = "";
+                    string folderNameList = "";
+                    foreach(string folder in arguments)
+                    {
+                        string combinedPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, folder);
+                        if (!Directory.Exists(combinedPath))
+                        {
+                            doesntExist.Add(folder);
+                            result += folder + ", ";
+                        }
+                        folderNameList += folder + ", ";
+                    }
+
+                    if (doesntExist.Count > 0)
+                        return "Invalid Operation. Folder " + result + " doesn't exist.";
+                    else
+                    {
+                        foreach(string folder in arguments)
+                        {
+                            string combinedPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, folder);
+                            deleteFolder(combinedPath, folder);
+                        }
+                        return folderNameList + " were successfully deleted.";
+                    }
+                }
+                return "something";
+    
             }
             else if (arguments.Length == 1)
             {
