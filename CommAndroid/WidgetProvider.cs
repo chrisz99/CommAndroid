@@ -124,7 +124,7 @@ namespace CommAndroid
             {
                 //Initialize string result that is returned from querying the command through class TerminalCommands
                 //Add the command itself, and the results to the list
-                string result = await TerminalCommands.queryCommand(command, context, appWidgetManager, appWidgetIds);
+                string result = await TerminalCommands.queryCommand(command, context, appWidgetManager, appWidgetIds, widgetView);
                 listViewFactory.addCommand("CMD: " + command, result);
 
                 //Create Handler to facilitate Self Scrolling of Listview

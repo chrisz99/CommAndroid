@@ -35,7 +35,7 @@ namespace CommAndroid
         //Helper String for printing the command list
         //Add Commands here to display in Terminal
         public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "rmdir 'path' 'name'","copy 'sourcepath' 'destinationpath'",
-            "ren 'sourcepath' 'newname'","datclear 'appname'","stordat","coinflip",
+            "ren 'sourcepath' 'newname'","datclear 'appname'","stordat","coinflip","title 'name'"
   };
 
 
@@ -1111,12 +1111,36 @@ namespace CommAndroid
             
         }
       
+        //Method to change the title of the terminal window
+        private static string changeTerminalTitle(string title, RemoteViews view)
+        {
+            view.SetTextViewText(Resource.Id.terminal_title, title);
+            return "Successfully changed title to " + title;
+        }
 
+        //Helper function to change title of terminal window
+        //Can use spaces with this one
+        private static string changeTerminalTitleHelper(string[] args, RemoteViews view)
+        {
+
+            if (args.Length == 1)
+            {
+                string title = args[0];
+                return changeTerminalTitle(title, view);
+            }
+            else if(args.Length > 1)
+            {
+                string title = string.Join(' ', args);
+                return changeTerminalTitle(title, view);
+            }
+            else
+                return "Invalid Syntax. (title 'name')";
+        }
 
 
 
         //Main function that takes a command, (string), and breaks it up to see what method to fire
-        public static async Task<string> queryCommand(string commandText, Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds )
+        public static async Task<string> queryCommand(string commandText, Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds, RemoteViews view )
         {
 
             //If Statement for no command text entered
@@ -1180,6 +1204,10 @@ namespace CommAndroid
                     case "ren":
                         {
                             return renameFileHelper(arguments);
+                        }
+                    case "title":
+                        {
+                            return changeTerminalTitleHelper(arguments, view);
                         }
 
                     //Command List

@@ -18,6 +18,7 @@
             android:layout_height="match_parent"
             android:text="@string/terminal_title"
             android:textStyle="italic"
+            android:id="@+id/terminal_title"
             android:fontFamily="sans-serif"
             android:paddingBottom="30dp"
             android:textColor="@android:color/black"
