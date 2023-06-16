@@ -23,6 +23,10 @@ using Android.Media;
 using Android.App.Usage;
 using Android.OS.Storage;
 using System.Drawing;
+using System.ComponentModel.Design;
+using AndroidX.Activity;
+using Java.Util.Jar;
+using System.Text.RegularExpressions;
 
 namespace CommAndroid
 {
@@ -30,7 +34,8 @@ namespace CommAndroid
     {
         //Helper String for printing the command list
         //Add Commands here to display in Terminal
-        public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "rmdir 'path' 'name'", "datclear 'appname'","stordat","coinflip" };
+        public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "rmdir 'path' 'name'","copy 'sourcepath' 'destinationpath'","datclear 'appname'","stordat","coinflip",
+  };
 
 
         //Text Message Method
@@ -418,11 +423,13 @@ namespace CommAndroid
         //Function to create a folder given a path and folderName
         private static string createFolder(string path, string folderName)
         {
+            //Create Java.IO.File with parameter for path
             Java.IO.File folder = new Java.IO.File(path);
 
+            //If folder doesn't exist => Create Folder
             if (!folder.Exists())
                 folder.Mkdirs();
-
+            
             return folderName + " successfully created";
         }
 
@@ -431,11 +438,16 @@ namespace CommAndroid
         //Helper function to create a folder given a string[] args
         private static string createFolderHelper(string[] arguments)
         {
-
+            //Check if arguments are greater than 2, provided path and foldername
             if (arguments.Length >= 2)
             {
+                //Initialize path and foldername based on args
                 string path = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
                 string folderName = arguments[1];
+
+                //Checks if directory exists with path
+                //Initialize string result, foldernamelist (formatting string), folderNames[],
+                //and a list to hold folders that already exist
                 if (Directory.Exists(path))
                 {
                     
@@ -443,6 +455,8 @@ namespace CommAndroid
                     string folderNameList = "";
                         string[] folderNames = arguments.Skip(1).ToArray();
                         List<string> alreadyExists = new List<string>();
+
+                        //Checks if folder already exists, adds it to the list, add foldername to formatting string
                         foreach(string folder in folderNames)
                         {
                             string combinedPathWithAddedFolder = Path.Combine(path, folder); 
@@ -454,8 +468,10 @@ namespace CommAndroid
                         folderNameList += folder + ", ";
                         }
 
+                        //Check if any exists, if so, return invalid operation
                         if (alreadyExists.Count > 0)
                             return "Invalid Operation. Folder " + folderNameList + " already exists.";
+                        //If none exists with provided foldernames => Create folders
                         else
                         {
                             foreach(string folder in folderNames)
@@ -468,11 +484,16 @@ namespace CommAndroid
 
                     
                 }
+                //If arguments is less than 2
+                //Initialize same vars
                 else
                 {
                     string result = "";
                     string folderNameList = "";
                     List<string> alreadyExists = new List<string>();
+
+                    //Iterate through each folder, if directory exists add it to the list
+                    //Add folder name to formatting strings
                     foreach(string folder in arguments)
                     {
                         string combinedPathWithAddedFolder = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, folder);
@@ -483,8 +504,11 @@ namespace CommAndroid
                         }                       
                         folderNameList += folder + ", ";
                     }
+
+                    //Checks if any exists already, if so, return invalid operation
                     if (alreadyExists.Count > 0)
                         return "Invalid Operation. Folder " + folderNameList + " already exists.";
+                    //If they don't exist => Create Folders
                     else
                     {
                         foreach(string folder in arguments)
@@ -497,6 +521,8 @@ namespace CommAndroid
 
                 }
             }
+            //If args length is one
+            //Create folder at default path
             else if (arguments.Length == 1)
             {
                 string path = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
@@ -514,14 +540,16 @@ namespace CommAndroid
         //Function to delete a folder given a path, and a folderName
         private static string deleteFolder(string path, string folderName)
         {
+            //Create new Java.IO.File with parameter path
             Java.IO.File folder = new Java.IO.File(path);
 
+            //Checks if folder exists, if so, => Delete folder
             if (folder.Exists())
             {
                 Directory.Delete(path, true);
                 return folderName + " successfully deleted";
             }
-                
+            //If not return invalid operation    
             else
                 return "Invalid Operation. " + folderName + " doesn't exist.";
         }
@@ -529,17 +557,30 @@ namespace CommAndroid
         //Delete folder helper function given a string[] args
         private static string deleteFolderHelper(string[] arguments)
         {
-
+            //Checks if args length is greater than 2
+            //Initialize defaultPath with args for path
             if (arguments.Length >= 2)
             {
                 string defaultPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
-                if (Directory.Exists(defaultPath))
+
+                //If directory exists with path given
+                //Initialize string[] for folder names, strings for result and list, int for existCount, and list for doesn'tExist
+                //Since we are not making use of a CD command, we have to utilize other means of figuring out whether the user wants.
+                //Either to delete at the default directory, or with the path specified. We do this by checking the strings in the arguments.
+                //Checking if they are foldernames, and if they exist as a directory and incrementing the existCount int
+                //If the existCount is greater than 0, we know the user wants to delete at the default directory.
+
+                if (Directory.Exists(defaultPath) || Directory.Exists(removeUnderscore(defaultPath)))
                 {
                     string[] folderNames = arguments.Skip(1).ToArray();
+                    for(int i = 0; i < folderNames.Length; i++)
+                        folderNames[i] = removeUnderscore(folderNames[i]);
                     string result = "";
                     int existCount = 0;
                     string folderNameList = "";
                     List<string> doesntExist = new List<string>();
+
+                    //Check if folder doesn't exist at path, and checking if it does exist as a folder in the default directory
                     foreach (string folder in folderNames)
                     {
                         string checkPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath,folder);
@@ -553,13 +594,26 @@ namespace CommAndroid
                         {
                             existCount++;
                         }
+
                         folderNameList += folder + ", ";
                     }
 
+                    //If any exists in the default directory
+                    //Delete at the default directory
                     if(existCount > 0)
                     {
+                        //Create new formatting string and List for deleting at default directory                       
+
+                        for (int i = 0; i < arguments.Length; i++)
+                        {
+                            arguments[i] = removeUnderscore(arguments[i]);  
+                        }
+
                         List<string> doesntExist2 = new List<string>();
                         string folderNameList2 = "";
+                        result = "";
+
+                        //Check if each folder in arguments doesn't exist, adding it to the list
                         foreach (string folder in arguments)
                         {                     
                             string combinedPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, folder);
@@ -571,8 +625,10 @@ namespace CommAndroid
                             folderNameList2 += folder + ", ";
                         }
 
+                        //If it doesn't exist => Invalid Operation
                         if (doesntExist2.Count > 0)
                             return "Invalid Operation. Folder " + result + " doesn't exist.";
+                        //Otherwise delete the folders in the default directory
                         else
                         {
                             foreach (string folder in arguments)
@@ -583,6 +639,7 @@ namespace CommAndroid
                             return folderNameList2 + " were successfully deleted.";
                         }
                     }
+                    //If Exist Count is 0 and Doesnt exist count is 0 than delete at path specified by user
                     if (doesntExist.Count == 0)
                     {
                         foreach (string folder in folderNames)
@@ -597,8 +654,10 @@ namespace CommAndroid
 
              
                 }
+                //If directory doesn't exist at path (Default Directory)
                 else
                 {
+                    //Initialize vars
                     List<string> doesntExist = new List<string>();
                     string result = "";
                     string folderNameList = "";
@@ -613,8 +672,10 @@ namespace CommAndroid
                         folderNameList += folder + ", ";
                     }
 
+                    //Check if any doesn't exist => Invalid Operation
                     if (doesntExist.Count > 0)
                         return "Invalid Operation. Folder " + result + " doesn't exist.";
+                    //Otherwise delete folders at default directory
                     else
                     {
                         foreach(string folder in arguments)
@@ -625,17 +686,569 @@ namespace CommAndroid
                         return folderNameList + " were successfully deleted.";
                     }
                 }
-                return "something";
+              
     
             }
+            //Base Case with Default Directory
             else if (arguments.Length == 1)
             {
                 string path = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
                 return deleteFolder(path, arguments[0]);
             }
+            //Bad syntax
             else
                 return "Invalid Syntax rmdir 'path' 'name'";
         }
+
+
+
+        //Helper function to copy a directory and files
+        private static void copyDirectoryHelper(string sourceDirPath, string destinationDirPath)
+        {
+            Directory.CreateDirectory(destinationDirPath);
+
+            foreach(string dirPath in Directory.GetDirectories(sourceDirPath))
+            {
+                Directory.CreateDirectory(dirPath.Replace(sourceDirPath, destinationDirPath));
+            }
+
+            foreach (string newPath in Directory.GetFiles(sourceDirPath))
+            {
+                File.Copy(newPath, newPath.Replace(sourceDirPath, destinationDirPath));
+            }
+
+
+        }
+
+        //Helper function to determine if a path is a file or directory
+        private static string isFile(string path)
+        {
+            if (File.Exists(path))
+                return "file";
+            else if (Directory.Exists(path))
+            {
+                FileAttributes fa = File.GetAttributes(path);
+                if (fa.HasFlag(FileAttributes.Directory))
+                    return "directory";
+                else
+                    return "notexist";
+            }
+            else return "notexist";
+      
+
+
+
+        }
+
+        //Helper function to remove underscores from paths
+        private static string removeUnderscore(string path)
+        {
+            int nameIndex = path.LastIndexOf("/");
+            string name = path.Substring(nameIndex + 1);
+            string newName = name.Replace('_', ' ');
+            string newPath = path.Replace(name, newName);
+
+            return newPath;
+        }
+
+        //Helper function to handle duplicate file count, adds or changes number to the end of name of file. (test.txt) => (test_1.txt)
+        private static string changeFileCount(string name, int count)
+        {
+            int extensionIndex = name.LastIndexOf(".");
+            string extension = name.Substring(extensionIndex);
+            string fileName = name.Substring(0, extensionIndex);
+            if (Regex.IsMatch(fileName,@"_\d"))
+            {
+                fileName = fileName.Substring(0,fileName.LastIndexOf('_'));
+                fileName = removeUnderscore(fileName);  
+                return removeUnderscore(fileName) + "_" + count + extension;
+            }
+            else
+                return removeUnderscore(fileName) + "_" + count + extension;
+        }
+
+        //Copy Helper Command
+        //Copies Folders and Files, Handles Cases Where Folders or Files has Spaces with '_' char
+        //copy 'sourcePath' 'destinationPath'
+        private static string copyHelper(string[] arguments)
+        {
+            //Globals
+            string defaultPath = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
+
+            //Args length 2 (copy 'sourcepath' 'destination')
+            if (arguments.Length == 2)
+            {
+                //Initialize a string sourcePath by first argument
+                //Extract name from sourcepath substring
+                //Create initial destination path
+                string sourcePath = Path.Combine(defaultPath, arguments[0]);
+                int nameIndex = sourcePath.LastIndexOf('/');
+                string name = sourcePath.Substring(nameIndex);
+                string destinationPath = Path.Combine(defaultPath, arguments[1]);
+                int copyCount = 0;
+
+                //Checks if sourcepath is a directory
+                if (isFile(sourcePath) == "directory")
+                {
+                    //Checks if destination exists
+                    if (Directory.Exists(destinationPath))
+                    {
+                       
+                        //Adds folder name to end of destination path
+                        destinationPath += name;
+                        
+                        //Iterate until we get a directory that doesn't exist
+                        while (Directory.Exists(destinationPath))
+                        {
+                            //Increment copy counter
+                            //Remove Previous Name, add new one with copy counter
+                            copyCount++;
+                            destinationPath = destinationPath.Substring(0, destinationPath.LastIndexOf("/"));
+                            destinationPath += name + "_" + copyCount;
+                        }
+                        //Do the copying
+                        copyDirectoryHelper(sourcePath, destinationPath);
+                        return "Directory " + destinationPath.Substring(destinationPath.LastIndexOf('/')) + " successfully copied to destination " + Path.Combine(defaultPath, arguments[1]);
+                    }
+                    //If destination directory has underscore
+                    else if (Directory.Exists(removeUnderscore(destinationPath)))
+                    {
+                        //Remove underscore, add name
+                        destinationPath = removeUnderscore(destinationPath);
+                        destinationPath += removeUnderscore(name);
+
+                        //Iterate until directory doesn't exist
+                        while(Directory.Exists(destinationPath))
+                        {
+                            //Increment copy counter
+                            //Substring add copy counter
+                            copyCount++;
+                            destinationPath = destinationPath.Substring(0, destinationPath.LastIndexOf("/"));
+                            destinationPath += removeUnderscore(name) + "_" + copyCount;
+                        }
+                        //Do the copying
+                        copyDirectoryHelper(sourcePath, destinationPath);
+                        return "Directory " + destinationPath.Substring(destinationPath.LastIndexOf('/')) + " successfully copied to destination " + Path.Combine(defaultPath, arguments[1]);
+                    }
+                    else
+                        return "Invalid Operation. Directory doesn't exist at destination " + destinationPath; 
+
+                }
+                //If source is a file
+                else if (isFile(sourcePath) == "file")
+                {
+                    //Checks if destination exists
+                    if (Directory.Exists(destinationPath))
+                    {
+                        
+                       //Iterate until file doesn't exist
+                        while (File.Exists(destinationPath + name))
+                        {
+                            //Add copy counter
+                            copyCount++;
+                            name = changeFileCount(name, copyCount);
+                            
+                        }
+                        //Do the copying
+                        File.Copy(sourcePath, destinationPath + name, true);
+                        return "File " + name + " has been successfully copied to destination " + destinationPath;
+                    }
+                    //If destination has a underscore
+                    else if (Directory.Exists(removeUnderscore(destinationPath)))
+                    {
+                        //Iterate until file doesn't exist
+                        while(File.Exists(removeUnderscore(destinationPath) + name))
+                        {
+                            //Increment and add copy counter
+                            copyCount++;
+                            name = changeFileCount(name, copyCount);
+                        }
+                        //Do the copying
+                        File.Copy(sourcePath, removeUnderscore(destinationPath) + name, true);
+                        return "File " + name + " has been successfully coped to destination " + removeUnderscore(destinationPath);
+                    }
+                    else
+                        return "Invalid Operation. File already exists at destination path";
+                }
+                //If source has a underscore
+                else if (arguments[0].Contains('_'))
+                {
+                    //Remove the underscore
+                    string newPath = removeUnderscore(sourcePath);
+                    
+                    //Check if the underscored source is a directory
+                    if (isFile(newPath) == "directory")
+                    {
+                        string newDirectory = "";
+                        //Checks if destination exists
+                        if (Directory.Exists(destinationPath))
+                        {
+                            //Remove underscore and add name
+                            newDirectory = removeUnderscore(destinationPath) + removeUnderscore(name);
+                            
+                            //Iterate until a directory doesn't exist
+                            while (Directory.Exists(newDirectory))
+                            {
+                                //Increment copy counter
+                                //Remove prev name, add new name
+                                copyCount++;
+                                newDirectory = newDirectory.Substring(0, newDirectory.LastIndexOf("/"));
+                                newDirectory += removeUnderscore(name) + "_" + copyCount;
+                            }
+                            //Do the copying
+                            copyDirectoryHelper(newPath, newDirectory);
+                            return "Directory " + newDirectory.Substring(newDirectory.LastIndexOf('/')) + " has been successfully copied to destination " + destinationPath;
+                        }
+                        //If destination has a underscore
+                        else if (Directory.Exists(removeUnderscore(destinationPath)))
+                        {
+                            //Remove underscore add name
+                            newDirectory = removeUnderscore(destinationPath) + removeUnderscore(name);
+
+                            //iterate until a directory doesn't exist
+                            while (Directory.Exists(newDirectory))
+                            {
+                                //Increment copy counter, remove prev name, add new name
+                                copyCount++;
+                                newDirectory = newDirectory.Substring(0, newDirectory.LastIndexOf("/"));
+                                newDirectory += removeUnderscore(name) + "_" + copyCount;
+                            }
+                            //Do the copying
+                            copyDirectoryHelper(newPath, newDirectory);
+                            return "Directory " + newDirectory.Substring(newDirectory.LastIndexOf('/')) + " has been successfully copied to destination " + destinationPath;
+                        }
+                        else
+                            return "Invalid Operation. Directory doesn't exist at destination " + destinationPath;
+                    }
+                    //If the underscored source is a file
+                    else if (isFile(newPath) == "file")
+                    {
+                        //Check if the destination exists
+                        if (Directory.Exists(destinationPath))
+                        {
+                            //Add the name to the destination, remove underscore
+                            destinationPath += removeUnderscore(name);
+
+                            //Iterate until a file doesn't exist
+                            while (File.Exists(destinationPath))
+                            {
+                                //Increment copy counter, change name
+                                copyCount++;
+                                destinationPath = destinationPath.Substring(0, destinationPath.LastIndexOf("/"));
+                                name = changeFileCount(name, copyCount);
+                                destinationPath += name;
+
+                            }
+                            //Do the copying
+                            File.Copy(newPath, destinationPath, true);
+                            return "File " + name + " has been successfully coped to destination " + destinationPath;
+                        }
+                        //Check if source has underscore and destination has underscore
+                        else if (Directory.Exists(removeUnderscore(destinationPath)))
+                        {
+                            File.Copy(newPath, removeUnderscore(destinationPath), true);
+                            return "File " + name + " has been successfully coped to destination " + destinationPath;
+                        }
+                        else return "Invalid Operation. File already exists at destination path.";
+                    }
+                    else
+                        return "Invalid Operation. Source Directory doesn't exist.";
+
+                }
+                else return "Invalid Operation. Directory or File " + name + " is not found.";
+
+            }
+            //If arguments is 1, copying to default path
+            else if (arguments.Length == 1)
+            {
+                //Globals
+                int copyCount = 0;
+                string sourcePath = Path.Combine(defaultPath,arguments[0]);
+                string name = sourcePath.Substring(sourcePath.LastIndexOf('/'));
+                
+                //Checks if source is dir
+                if (isFile(sourcePath) == "directory")
+                {
+                    //Set path
+                    string directoryPath = sourcePath;
+                    //Check if destination exists, iterate until it doesn't
+                    while (Directory.Exists(directoryPath))
+                    {
+                        //Increment copy, change name
+                        copyCount++;
+                        directoryPath = directoryPath.Substring(0,directoryPath.LastIndexOf('/'));
+                        directoryPath += name + "_" + copyCount;
+                    }
+                    //Do the copying
+                    copyDirectoryHelper(sourcePath, directoryPath);
+                    return "Directory " + name + " has been successfully copied to destination " + defaultPath;
+                }
+                //If source is file
+                else if(isFile(sourcePath) == "file")
+                {
+                    //Iterate until file doesn't exist
+                    while(File.Exists(defaultPath + name))
+                    {
+                        //Incremet copy, change name
+                        copyCount++;
+                        name = changeFileCount(name, copyCount);
+                        
+                    }
+                    //Do the copying
+                    File.Copy(sourcePath, defaultPath + name, true);
+                    return "File " + name + " has been successfully copied to destination " + defaultPath;
+                }
+                //If default args contain spaces or underscores
+                else if (arguments[0].Contains('_'))
+                {
+                    //Check if it is a dir
+                    if (isFile(removeUnderscore(sourcePath)) == "directory")
+                    {
+                        //Remove underscore
+                        string directoryPath = removeUnderscore(sourcePath);
+                        //Iterate until dir doesn't exist
+                        while (Directory.Exists(directoryPath))
+                        {
+                            //Increment copy counter, change name
+                            copyCount++;
+                            directoryPath = directoryPath.Substring(0, directoryPath.LastIndexOf("/"));
+                            directoryPath += removeUnderscore(name) + "_" + copyCount;
+                        }
+                        //Do the copying
+                        copyDirectoryHelper(removeUnderscore(sourcePath), directoryPath);
+                        return "Directory " + directoryPath.Substring(directoryPath.LastIndexOf('/')) + " has been successfully copied to destination " + defaultPath;
+                    }
+                    //Checks if default source is a file with a underscore
+                    else if (isFile(removeUnderscore(sourcePath)) == "file")
+                    {
+                        //Remove underscore
+                        string destinationPath = removeUnderscore(sourcePath);
+
+                        //Iterate until file doesn't exist
+                        while (File.Exists(destinationPath))
+                        {
+                            //Increment copy counter, change name
+                            copyCount++;
+                            destinationPath = destinationPath.Substring(0, destinationPath.LastIndexOf("/"));
+                            name = changeFileCount(name, copyCount);
+                            destinationPath += name;
+
+                        }
+                        //Do the copying
+                        File.Copy(removeUnderscore(sourcePath), destinationPath, true);
+                        return "File " + name + " has been successfully coped to destination " + destinationPath;
+                    }
+                    else
+                        return "Invalid Operation. Directory or File " + name + " is not found";
+                }
+                else
+                    return "Invalid Operation. Directory or File " + name + " is not found.";
+            }
+            else
+                return "Invalid Syntax. (copy 'sourcePath' 'destinationpath')";
+        }
+
+        //private static string copyHelper(string[] arguments)
+        //{
+        //    //Globals
+        //    string defaultPath = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
+
+        //    //Cases
+        //    if (arguments.Length == 2)
+        //    {
+        //        string sourcePath = Path.Combine(defaultPath, arguments[0]);
+        //        string destinationPath = Path.Combine(defaultPath, arguments[1]);
+
+        //        //Checks if source is directory
+        //        if (isFile(sourcePath) == "directory")
+        //        {
+        //            string directoryPath = Path.Combine(destinationPath, arguments[0]);
+        //            //Checks if destination is valid
+        //            if (Directory.Exists(destinationPath))
+        //            {
+        //                copyDirectoryHelper(sourcePath, directoryPath);
+        //                return "Directory " + arguments[0] + " sucessfully copied to destination " + destinationPath;
+        //            }
+        //            else
+        //                return "Invalid Operation. Destination path doesn't exist.";
+
+        //        }
+        //        else if (isFile(sourcePath) == "file")
+        //        {
+        //            if (!File.Exists(destinationPath))
+        //            {
+        //                File.Copy(sourcePath, destinationPath, true);
+        //                return "File " + arguments[0] + " successfully copied to destination " + destinationPath;
+        //            }
+        //            else
+        //                return "Invalid Operation. File already exists at destination path.";
+        //        }
+        //        else if (arguments[0].Contains('_'))
+        //        {
+        //            if (arguments.Length == 2)
+        //            {
+        //                //String Operations to get Folder or File Name from 'storage/emulated/0/test_document' to 'storage/emulated/0/test document'
+        //                int nameIndex = arguments[0].LastIndexOf("/");
+        //                string folderName = arguments[0].Substring(nameIndex + 1);
+        //                string newName = folderName.Replace('_', ' ');
+        //                string newPath = sourcePath.Replace(folderName, newName);
+
+        //                if (isFile(newPath) == "directory")
+        //                {
+        //                    string directoryPath = Path.Combine(destinationPath, newName);
+
+        //                    if (Directory.Exists(destinationPath))
+        //                    {
+        //                        copyDirectoryHelper(newPath, directoryPath);
+        //                        return "Directory " + arguments[0] + " sucessfully copied to destination " + destinationPath;
+        //                    }
+        //                    else
+        //                        return "Invalid Operation. Destination path doesn't exist.";
+        //                }
+        //                else if (isFile(newPath) == "file")
+        //                {
+        //                    if (!File.Exists(destinationPath))
+        //                    {
+        //                        File.Copy(newPath, destinationPath, true);
+        //                        return "File " + newName + " has been successfully copied to destination " + destinationPath;
+        //                    }
+        //                    else
+        //                        return "Invalid Operation. File already exists at destination path";
+        //                }
+        //                else
+        //                    return "Invalid Operation. File or Directory " + newName + " doesn't exist";
+        //            }
+        //            else return "hoopla";
+            
+
+        //        }
+        //        else return "Invalid Operation. File or Directory doesn't exist at source path.";
+
+
+
+
+        //    }
+        //    else if(arguments.Length == 1)
+        //    {
+        //        string sourcePath = Path.Combine(defaultPath, arguments[0]);
+        //        string destinationPath = defaultPath;
+
+        //        int nameIndex = arguments[0].LastIndexOf("/");
+        //        string folderName = arguments[0].Substring(nameIndex + 1);
+
+
+         
+
+        //        //Checks if source is directory
+        //        if (isFile(sourcePath) == "directory")
+        //        {
+        //            int copyCount = 1;
+        //            string directoryPath = Path.Combine(destinationPath, folderName);
+        //            directoryPath += "_" + copyCount;
+
+        //            while (Directory.Exists(directoryPath))
+        //            {
+        //                copyCount++;
+        //                directoryPath = directoryPath.Substring(0, directoryPath.Length - 2);
+        //                directoryPath += "_" + Convert.ToString(copyCount);
+        //            }
+
+                   
+        //            //Checks if destination is valid
+        //            if (Directory.Exists(destinationPath))
+        //            {
+        //                copyDirectoryHelper(sourcePath, directoryPath);
+        //                return "Directory " + arguments[0] + " sucessfully copied to destination " + destinationPath;
+        //            }
+        //            else
+        //                return "Invalid Operation. Destination path doesn't exist.";
+
+        //        }
+        //        else if (isFile(sourcePath) == "file")
+        //        {
+        //            int extensionIndex = folderName.LastIndexOf('.');
+        //            string extension = folderName.Substring(extensionIndex);
+        //            string fileWOExtension = folderName.Substring(0,extensionIndex);                  
+        //            string directoryPath = Path.Combine(defaultPath, fileWOExtension + "1" + extension);
+        //            int copyCount = 1;
+
+        //            while(File.Exists(directoryPath))
+        //            {
+        //                copyCount++;
+        //                directoryPath = Path.Combine(defaultPath, fileWOExtension + copyCount.ToString() + extension);
+
+        //            }
+
+        //            if (!File.Exists(destinationPath))
+        //            {
+        //                File.Copy(sourcePath, directoryPath, true);
+        //                return "File " + arguments[0] + " successfully copied to destination " + destinationPath;
+        //            }
+        //            else
+        //                return "Invalid Operation. File already exists at destination path.";
+        //        }
+        //        else if (arguments[0].Contains('_'))
+        //        {
+        //            //String Operations to get Folder or File Name from 'storage/emulated/0/test_document' to 'storage/emulated/0/test document'
+        //            string newName = folderName.Replace('_', ' ');
+        //            string newPath = sourcePath.Replace(folderName, newName);
+
+
+
+        //            if (isFile(newPath) == "directory")
+        //            {
+        //                int copyCount = 1;
+        //                string directoryPath = Path.Combine(destinationPath, newName + copyCount.ToString());
+
+        //                while (Directory.Exists(directoryPath))
+        //                {
+        //                    copyCount++;
+        //                    directoryPath = Path.Combine(destinationPath, newName + copyCount.ToString());
+        //                }
+
+
+        //                if (Directory.Exists(destinationPath))
+        //                {
+        //                    copyDirectoryHelper(newPath, directoryPath);
+        //                    return "Directory " + arguments[0] + " sucessfully copied to destination " + destinationPath;
+        //                }
+        //                else
+        //                    return "Invalid Operation. Destination path doesn't exist.";
+        //            }
+        //            else if (isFile(newPath) == "file")
+        //            {
+        //                int extensionIndex = newName.LastIndexOf('.');
+        //                string extension = newName.Substring(extensionIndex);
+        //                string fileWOExtension = newName.Substring(0, extensionIndex);
+        //                string directoryPath = Path.Combine(defaultPath, fileWOExtension + "1" + extension);
+        //                int copyCount = 1;
+
+        //                while (File.Exists(directoryPath))
+        //                {
+        //                    copyCount++;
+        //                    directoryPath = Path.Combine(defaultPath, fileWOExtension + copyCount.ToString() + extension);
+        //                }
+
+        //                if (!File.Exists(destinationPath))
+        //                {
+        //                    File.Copy(newPath, directoryPath, true);
+        //                    return "File " + newName + " has been successfully copied to destination " + destinationPath;
+        //                }
+        //                else
+        //                    return "Invalid Operation. File already exists at destination path";
+        //            }
+        //            else
+        //                return "Invalid Operation. File or Directory " + newName + " doesn't exist";
+
+        //        }
+        //        else return "Invalid Operation. File or Directory doesn't exist at source path.";
+
+        //    }
+        //    else
+        //        return "Invalid Syntax. (copy 'sourcePath' 'destinationPath')";
+
+        //}
+
 
 
 
@@ -697,6 +1310,10 @@ namespace CommAndroid
                         {
                             return deleteFolderHelper(arguments);
                         }
+                    case "copy":
+                        {
+                            return copyHelper(arguments);
+                        }
 
                     //Command List
                     case"help":
@@ -711,7 +1328,7 @@ namespace CommAndroid
                 return "Invalid Command";
             }
 
-            return "true";
+            
         }
 
         

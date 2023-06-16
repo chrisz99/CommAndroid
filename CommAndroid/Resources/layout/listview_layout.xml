@@ -10,6 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center_horizontal"
         android:id="@+id/listviewlayout">
 
 
@@ -19,7 +20,7 @@
         android:layout_height="wrap_content"
         android:textSize="12sp"
         android:textColor="#52db02"
-        android:text="CMD: "
+        android:text="CMD:"
         android:fontFamily="monospace"
         android:paddingLeft="10dp" 
         android:layout_gravity="left"
@@ -39,9 +40,8 @@
             android:textColor="#52db02"
             android:id="@+id/blinking_dot"
             android:fontFamily="monospace"
-            android:textSize="12sp"
-            android:layout_gravity="bottom"
-            android:layout_marginHorizontal="-5dp"
+            android:layout_gravity="bottom|start"
+            android:layout_marginRight="2dp"
 
             >
         </ProgressBar>

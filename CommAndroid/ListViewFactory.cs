@@ -100,8 +100,12 @@ namespace CommAndroid
                     remoteViews.SetTextColor(Resource.Id.results_text, Color.Red);
                 else
                     remoteViews.SetTextColor(Resource.Id.results_text, Color.ParseColor("#52db02"));
-                if (items[position].ToLower().Split(' ')[1] == "help" || (items[position].ToLower().Split(' ')[1] == "dir" || results[position].ToLower().Split(' ')[0] == "flipping" && results[position].ToLower().Split(' ')[0] != "invalid"))
-                    remoteViews.SetTextColor(Resource.Id.results_text, Color.White);
+                if (items[position].ToLower().Split(' ')[1] == "help" || items[position].ToLower().Split(' ')[1] == "dir" || results[position].ToLower().Split(' ')[0] == "flipping")
+                {
+                  if(results[position].ToLower().Split(' ')[0] != "invalid")
+                        remoteViews.SetTextColor(Resource.Id.results_text, Color.White);
+                }
+                   
                 remoteViews.SetTextViewText(Resource.Id.results_text, results[position]); 
             }
             
@@ -124,7 +128,7 @@ namespace CommAndroid
 
 
             return remoteViews;
-        }
+        } 
 
 
         public RemoteViews LoadingView => null;
