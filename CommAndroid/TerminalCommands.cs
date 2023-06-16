@@ -34,7 +34,8 @@ namespace CommAndroid
     {
         //Helper String for printing the command list
         //Add Commands here to display in Terminal
-        public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "rmdir 'path' 'name'","copy 'sourcepath' 'destinationpath'","datclear 'appname'","stordat","coinflip",
+        public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "rmdir 'path' 'name'","copy 'sourcepath' 'destinationpath'",
+            "ren 'sourcepath' 'newname'","datclear 'appname'","stordat","coinflip",
   };
 
 
@@ -1048,206 +1049,68 @@ namespace CommAndroid
                 return "Invalid Syntax. (copy 'sourcePath' 'destinationpath')";
         }
 
-        //private static string copyHelper(string[] arguments)
-        //{
-        //    //Globals
-        //    string defaultPath = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
 
-        //    //Cases
-        //    if (arguments.Length == 2)
-        //    {
-        //        string sourcePath = Path.Combine(defaultPath, arguments[0]);
-        //        string destinationPath = Path.Combine(defaultPath, arguments[1]);
+        //Function to rename files and directories
+        //(ren 'sourcepath' 'newname')
+        private static string renameFile(string sourcePath, string fileName)
+        {
+            string defaultPath = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
+            string combinedPath = Path.Combine(defaultPath, sourcePath);
 
-        //        //Checks if source is directory
-        //        if (isFile(sourcePath) == "directory")
-        //        {
-        //            string directoryPath = Path.Combine(destinationPath, arguments[0]);
-        //            //Checks if destination is valid
-        //            if (Directory.Exists(destinationPath))
-        //            {
-        //                copyDirectoryHelper(sourcePath, directoryPath);
-        //                return "Directory " + arguments[0] + " sucessfully copied to destination " + destinationPath;
-        //            }
-        //            else
-        //                return "Invalid Operation. Destination path doesn't exist.";
 
-        //        }
-        //        else if (isFile(sourcePath) == "file")
-        //        {
-        //            if (!File.Exists(destinationPath))
-        //            {
-        //                File.Copy(sourcePath, destinationPath, true);
-        //                return "File " + arguments[0] + " successfully copied to destination " + destinationPath;
-        //            }
-        //            else
-        //                return "Invalid Operation. File already exists at destination path.";
-        //        }
-        //        else if (arguments[0].Contains('_'))
-        //        {
-        //            if (arguments.Length == 2)
-        //            {
-        //                //String Operations to get Folder or File Name from 'storage/emulated/0/test_document' to 'storage/emulated/0/test document'
-        //                int nameIndex = arguments[0].LastIndexOf("/");
-        //                string folderName = arguments[0].Substring(nameIndex + 1);
-        //                string newName = folderName.Replace('_', ' ');
-        //                string newPath = sourcePath.Replace(folderName, newName);
+            if (File.Exists(combinedPath))
+            {
+                string reducedPath = combinedPath.Substring(0, combinedPath.LastIndexOf("/"));
+                string newPath = Path.Combine(reducedPath, fileName);
+                File.Move(combinedPath, newPath);
+                return "File " + sourcePath + " has successfully been renamed to " + fileName + ".";
+            }
+            else if(Directory.Exists(combinedPath))
+            {
+                string reducedPath = combinedPath.Substring(0, combinedPath.LastIndexOf("/"));
+                string newPath = Path.Combine(reducedPath, fileName);
+                Directory.Move(combinedPath, newPath);
+                return "Directory " + sourcePath + " has successfully been renamed to " + fileName + ".";
+            }
+            else if(combinedPath.Contains('_'))
+            {
+                combinedPath = removeUnderscore(combinedPath);
+                if (File.Exists(combinedPath))
+                {
+                    string reducedPath = combinedPath.Substring(0, combinedPath.LastIndexOf("/"));
+                    string newPath = Path.Combine(reducedPath, fileName);
+                    File.Move(combinedPath, newPath);
+                    return "File " + removeUnderscore(sourcePath) + " has successfully been renamed to " + fileName + ".";
+                }
+                else if (Directory.Exists(combinedPath))
+                {
+                    string reducedPath = combinedPath.Substring(0, combinedPath.LastIndexOf("/"));
+                    string newPath = Path.Combine(reducedPath, fileName);
+                    Directory.Move(combinedPath, newPath);
+                    return "Directory " + removeUnderscore(sourcePath) + " has successfully been renamed to " + fileName + ".";
+                }
+                else
+                    return "Invalid Operation. File or Directory " + sourcePath + " doesn't exist.";
+            }
+            else
+                return "Invalid Operation. File " + sourcePath + " doesn't exist.";
+        }
 
-        //                if (isFile(newPath) == "directory")
-        //                {
-        //                    string directoryPath = Path.Combine(destinationPath, newName);
+        //Rename file helper function
+        private static string renameFileHelper(string[] arguments)
+        {
+            if (arguments.Length == 2)
+            {
+                string sourcePath = arguments[0];
+                string fileName = arguments[1];
 
-        //                    if (Directory.Exists(destinationPath))
-        //                    {
-        //                        copyDirectoryHelper(newPath, directoryPath);
-        //                        return "Directory " + arguments[0] + " sucessfully copied to destination " + destinationPath;
-        //                    }
-        //                    else
-        //                        return "Invalid Operation. Destination path doesn't exist.";
-        //                }
-        //                else if (isFile(newPath) == "file")
-        //                {
-        //                    if (!File.Exists(destinationPath))
-        //                    {
-        //                        File.Copy(newPath, destinationPath, true);
-        //                        return "File " + newName + " has been successfully copied to destination " + destinationPath;
-        //                    }
-        //                    else
-        //                        return "Invalid Operation. File already exists at destination path";
-        //                }
-        //                else
-        //                    return "Invalid Operation. File or Directory " + newName + " doesn't exist";
-        //            }
-        //            else return "hoopla";
+                return renameFile(sourcePath, fileName);
+            }
+            else
+                return "Invalid Syntax. (ren 'sourcepath' 'newname')";
             
-
-        //        }
-        //        else return "Invalid Operation. File or Directory doesn't exist at source path.";
-
-
-
-
-        //    }
-        //    else if(arguments.Length == 1)
-        //    {
-        //        string sourcePath = Path.Combine(defaultPath, arguments[0]);
-        //        string destinationPath = defaultPath;
-
-        //        int nameIndex = arguments[0].LastIndexOf("/");
-        //        string folderName = arguments[0].Substring(nameIndex + 1);
-
-
-         
-
-        //        //Checks if source is directory
-        //        if (isFile(sourcePath) == "directory")
-        //        {
-        //            int copyCount = 1;
-        //            string directoryPath = Path.Combine(destinationPath, folderName);
-        //            directoryPath += "_" + copyCount;
-
-        //            while (Directory.Exists(directoryPath))
-        //            {
-        //                copyCount++;
-        //                directoryPath = directoryPath.Substring(0, directoryPath.Length - 2);
-        //                directoryPath += "_" + Convert.ToString(copyCount);
-        //            }
-
-                   
-        //            //Checks if destination is valid
-        //            if (Directory.Exists(destinationPath))
-        //            {
-        //                copyDirectoryHelper(sourcePath, directoryPath);
-        //                return "Directory " + arguments[0] + " sucessfully copied to destination " + destinationPath;
-        //            }
-        //            else
-        //                return "Invalid Operation. Destination path doesn't exist.";
-
-        //        }
-        //        else if (isFile(sourcePath) == "file")
-        //        {
-        //            int extensionIndex = folderName.LastIndexOf('.');
-        //            string extension = folderName.Substring(extensionIndex);
-        //            string fileWOExtension = folderName.Substring(0,extensionIndex);                  
-        //            string directoryPath = Path.Combine(defaultPath, fileWOExtension + "1" + extension);
-        //            int copyCount = 1;
-
-        //            while(File.Exists(directoryPath))
-        //            {
-        //                copyCount++;
-        //                directoryPath = Path.Combine(defaultPath, fileWOExtension + copyCount.ToString() + extension);
-
-        //            }
-
-        //            if (!File.Exists(destinationPath))
-        //            {
-        //                File.Copy(sourcePath, directoryPath, true);
-        //                return "File " + arguments[0] + " successfully copied to destination " + destinationPath;
-        //            }
-        //            else
-        //                return "Invalid Operation. File already exists at destination path.";
-        //        }
-        //        else if (arguments[0].Contains('_'))
-        //        {
-        //            //String Operations to get Folder or File Name from 'storage/emulated/0/test_document' to 'storage/emulated/0/test document'
-        //            string newName = folderName.Replace('_', ' ');
-        //            string newPath = sourcePath.Replace(folderName, newName);
-
-
-
-        //            if (isFile(newPath) == "directory")
-        //            {
-        //                int copyCount = 1;
-        //                string directoryPath = Path.Combine(destinationPath, newName + copyCount.ToString());
-
-        //                while (Directory.Exists(directoryPath))
-        //                {
-        //                    copyCount++;
-        //                    directoryPath = Path.Combine(destinationPath, newName + copyCount.ToString());
-        //                }
-
-
-        //                if (Directory.Exists(destinationPath))
-        //                {
-        //                    copyDirectoryHelper(newPath, directoryPath);
-        //                    return "Directory " + arguments[0] + " sucessfully copied to destination " + destinationPath;
-        //                }
-        //                else
-        //                    return "Invalid Operation. Destination path doesn't exist.";
-        //            }
-        //            else if (isFile(newPath) == "file")
-        //            {
-        //                int extensionIndex = newName.LastIndexOf('.');
-        //                string extension = newName.Substring(extensionIndex);
-        //                string fileWOExtension = newName.Substring(0, extensionIndex);
-        //                string directoryPath = Path.Combine(defaultPath, fileWOExtension + "1" + extension);
-        //                int copyCount = 1;
-
-        //                while (File.Exists(directoryPath))
-        //                {
-        //                    copyCount++;
-        //                    directoryPath = Path.Combine(defaultPath, fileWOExtension + copyCount.ToString() + extension);
-        //                }
-
-        //                if (!File.Exists(destinationPath))
-        //                {
-        //                    File.Copy(newPath, directoryPath, true);
-        //                    return "File " + newName + " has been successfully copied to destination " + destinationPath;
-        //                }
-        //                else
-        //                    return "Invalid Operation. File already exists at destination path";
-        //            }
-        //            else
-        //                return "Invalid Operation. File or Directory " + newName + " doesn't exist";
-
-        //        }
-        //        else return "Invalid Operation. File or Directory doesn't exist at source path.";
-
-        //    }
-        //    else
-        //        return "Invalid Syntax. (copy 'sourcePath' 'destinationPath')";
-
-        //}
+        }
+      
 
 
 
@@ -1313,6 +1176,10 @@ namespace CommAndroid
                     case "copy":
                         {
                             return copyHelper(arguments);
+                        }
+                    case "ren":
+                        {
+                            return renameFileHelper(arguments);
                         }
 
                     //Command List
