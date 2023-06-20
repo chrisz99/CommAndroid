@@ -1,0 +1,3 @@
+Content thats planned to be added:
+
+1. Customizable Terminal Themes
