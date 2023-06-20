@@ -32,11 +32,13 @@ namespace CommAndroid
 {
     public class TerminalCommands
     {
+        //Global Vars
         //Helper String for printing the command list
         //Add Commands here to display in Terminal
         public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "rmdir 'path' 'name'","copy 'sourcepath' 'destinationpath'",
-            "ren 'sourcepath' 'newname'","datclear 'appname'","stordat","coinflip","title 'name'"
-  };
+            "ren 'sourcepath' 'newname'","datclear 'appname'","stordat","coinflip","title 'name'"};
+
+        private static WidgetDataManager widgetDataManager;
 
 
         //Text Message Method
@@ -370,14 +372,19 @@ namespace CommAndroid
         }
 
         //Coin Flip Method, Async Because Pseudo Flipping Animation
-        private async static Task<string> coinFlip(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds)
+        private static async Task<string> coinFlip(Context context, AppWidgetManager appWidgetManager, int appWidgetId)
         {
             //Create new random object r
-            //Change ListView items to coinflip, and flipping for user view => Update Widget
+            //Change ListView items to coinflip, and flipping for user's view => Update Widget
             System.Random r = new System.Random();
-            ListViewFactory.items[ListViewFactory.items.Count - 1] = "CMD: coinflip ";
-            ListViewFactory.results[ListViewFactory.results.Count - 1] = "flipping";
-            appWidgetManager.NotifyAppWidgetViewDataChanged(appWidgetIds, Resource.Id.listView1);
+            widgetDataManager = new WidgetDataManager(context);
+            widgetDataManager.checkInitData(appWidgetId);
+            List<string> commands = widgetDataManager.getCommands(appWidgetId);
+            List<string> results = widgetDataManager.getResults(appWidgetId);
+            commands[commands.Count - 1] = "CMD: coinflip";
+            results[results.Count - 1] =  "flipping";
+            widgetDataManager.saveLists(appWidgetId, commands, results);
+            appWidgetManager.NotifyAppWidgetViewDataChanged(appWidgetId, Resource.Id.listView1);
 
             //Play Flipping Sound, Async method to wait for coin flip
             MediaPlayer mediaPlayer = MediaPlayer.Create(context, Resource.Raw.coinflipsound);
@@ -1140,7 +1147,7 @@ namespace CommAndroid
 
 
         //Main function that takes a command, (string), and breaks it up to see what method to fire
-        public static async Task<string> queryCommand(string commandText, Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds, RemoteViews view )
+        public static async Task<string> queryCommand(string commandText, Context context, AppWidgetManager appWidgetManager, int appWidgetId, RemoteViews view )
         {
 
             //If Statement for no command text entered
@@ -1183,7 +1190,7 @@ namespace CommAndroid
                         }
                     case "coinflip":
                         {
-                            return await coinFlip(context,appWidgetManager,appWidgetIds);
+                            return await coinFlip(context,appWidgetManager,appWidgetId);
                         }
                     case "stordat":
                         {

@@ -1,9 +1,10 @@
 ﻿
 using Android.App;
+using Android.Appwidget;
 using Android.Content;
 
 using Android.Graphics;
-
+using Android.OS;
 using Android.Views;
 using Android.Widget;
 using System.Collections.Generic;
@@ -17,26 +18,34 @@ namespace CommAndroid
     {
         //Globals
         private Context context;
-        public static List<string> items;
-        public static List<string> results;
+        private List<string> items;
+        private List<string> results;
+        private int appWidgetId;
+        private WidgetDataManager widgetDataManager;
+        private Handler handler;
 
 
         //Constructor to create list view factory
-        public ListViewFactory(Context context)
+        public ListViewFactory(Context context, Intent intent)
         {
             this.context = context;
+            //Checking if items dictionary is null
+
+            this.appWidgetId = int.Parse(intent.Data.SchemeSpecificPart);
+
             if (items == null)
                 items = new List<string>();
-
-
             if (results == null)
                 results = new List<string>();
 
-            if(items.Count == 0 && results.Count == 0)
-            {
-                items.Add("CMD: ");
-                results.Add("");
-            }
+            widgetDataManager = new WidgetDataManager(context);
+            items = widgetDataManager.getCommands(appWidgetId);
+            results = widgetDataManager.getResults(appWidgetId);
+
+
+
+      
+
 
             
         }
@@ -47,34 +56,7 @@ namespace CommAndroid
         
         }
 
-        public void removeLast()
-        {
-            items.RemoveAt(items.Count - 1);
-            results.RemoveAt(results.Count - 1);
-        }
 
-        //Add's a command to the listview, removes the prior placeholder CMD text
-        public void addCommand(string command,string result)
-        {
-            if (items == null || items.Count < 0)
-            {
-                items = new List<string>();
-            }
-            removeLast();
-            items.Add(command);
-            results.Add(result);
-            items.Add("CMD: ");
-            results.Add("");
-        }
-
-        //Clear the lists
-        public void clearList()
-        {
-            items.Clear();
-            results.Clear();
-            items.Add("CMD: ");
-            results.Add("");
-        }
 
 
         public void OnDestroy()
@@ -89,44 +71,58 @@ namespace CommAndroid
         {
             // Create a RemoteViews object for each item in the data source, Referencing our Layout for our List View
             RemoteViews remoteViews = new RemoteViews(context.PackageName, Resource.Layout.listview_layout);
+            AppWidgetManager appWidgetManager = AppWidgetManager.GetInstance(context);
 
-            //Check's if there is items, iterates until there is none
+
             if (items != null && items.Count > position)
-            {
-                //Sets text in listview to command items and result items
-                //Also checks the commands text to determine what color to output
-                remoteViews.SetTextViewText(Resource.Id.command_text, items[position]);
-                if (results[position].ToLower().Split(' ')[0] == "invalid")
-                    remoteViews.SetTextColor(Resource.Id.results_text, Color.Red);
-                else
-                    remoteViews.SetTextColor(Resource.Id.results_text, Color.ParseColor("#52db02"));
-                if (items[position].ToLower().Split(' ')[1] == "help" || items[position].ToLower().Split(' ')[1] == "dir" || results[position].ToLower().Split(' ')[0] == "flipping")
                 {
-                  if(results[position].ToLower().Split(' ')[0] != "invalid")
-                        remoteViews.SetTextColor(Resource.Id.results_text, Color.White);
+                    //Sets text in listview to command items and result items
+                    //Also checks the commands text to determine what color to output
+                    remoteViews.SetTextViewText(Resource.Id.command_text, items[position]);
+                    if (results[position].ToLower().Split(' ')[0] == "invalid")
+                        remoteViews.SetTextColor(Resource.Id.results_text, Color.Red);
+                    else
+                        remoteViews.SetTextColor(Resource.Id.results_text, Color.ParseColor("#52db02"));
+                    if (items[position].ToLower().Split(' ')[1] == "help" || items[position].ToLower().Split(' ')[1] == "dir" || results[position].ToLower().Split(' ')[0] == "flipping")
+                    {
+                        if (results[position].ToLower().Split(' ')[0] != "invalid")
+                            remoteViews.SetTextColor(Resource.Id.results_text, Color.White);
+                    }
+
+                    remoteViews.SetTextViewText(Resource.Id.results_text, results[position]);
                 }
-                   
-                remoteViews.SetTextViewText(Resource.Id.results_text, results[position]); 
-            }
-            
+
+
+            //Create Handler to facilitate Self Scrolling of Listview
+            //Set Scroll position, partially update app widget
+            //Don't know why this works instead of just setting scroll position, but hey it's android development
+            handler = new Handler(Looper.MainLooper);
+            handler.PostDelayed(async () =>
+            {
+
+                remoteViews.SetScrollPosition(Resource.Id.listView1, widgetDataManager.getCount(appWidgetId));
+                appWidgetManager.PartiallyUpdateAppWidget(appWidgetId, remoteViews);
+
+            }, 500);
+
             //If statement checking whether the position in the list is the last one
             //Sets blinking animation to visible
             if (position == items.Count - 1)
-            {
-                remoteViews.SetViewVisibility(Resource.Id.blinking_dot, ViewStates.Visible);
-            }
-            else
-            {
-                remoteViews.SetViewVisibility(Resource.Id.blinking_dot, ViewStates.Gone);
-            }
-
-            Intent fillInIntent = new Intent();
-            fillInIntent.PutExtra("command_text", items[position]);
-           remoteViews.SetOnClickFillInIntent(Resource.Id.listviewlayout, fillInIntent);
+                {
+                    remoteViews.SetViewVisibility(Resource.Id.blinking_dot, ViewStates.Visible);
+                }
+                else
+                {
+                    remoteViews.SetViewVisibility(Resource.Id.blinking_dot, ViewStates.Gone);
+                }
 
 
 
+                //Intent fillInIntent = new Intent();
+                //fillInIntent.PutExtra("command_text", items[position]);
+                //remoteViews.SetOnClickFillInIntent(Resource.Id.listviewlayout, fillInIntent);
 
+         
             return remoteViews;
         } 
 
@@ -142,9 +138,15 @@ namespace CommAndroid
 
         public bool HasStableIds => true;
 
+
+
         public void OnDataSetChanged()
         {
             // Update your data source if needed
+            widgetDataManager = new WidgetDataManager(context);
+            items = widgetDataManager.getCommands(appWidgetId);
+            results = widgetDataManager.getResults(appWidgetId);
+
         }
     }
 

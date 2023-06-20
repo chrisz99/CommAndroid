@@ -1,0 +1,155 @@
+using Android.Content;
+using System.Runtime.ConstrainedExecution;
+using Newtonsoft.Json;
+using Android.Preferences;
+using AndroidX.Preference;
+using System.Collections.Generic;
+using AndroidX.AppCompat.View.Menu;
+
+namespace CommAndroid
+{
+    //Class to handle command/result data in the lists of the widgets
+    //Uses SharedPreferences to store and retrive the data
+    //Uses Newtonsoft.Json to convert list objects to json
+    class WidgetDataManager
+    {
+        //Global Vars
+        private const string PREF_NAME = "WidgetData";
+        private const string KEY_PREFIX_COMMANDS = "commands_";
+        private const string KEY_PREFIX_RESULTS = "results_";
+
+        private ISharedPreferences sharedPreferences;
+        private JsonSerializerSettings jsonSerializerSettings;
+
+        //Constructor
+        public WidgetDataManager(Context context)
+        {
+            sharedPreferences = AndroidX.Preference.PreferenceManager.GetDefaultSharedPreferences(context);
+            jsonSerializerSettings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
+
+        }
+
+        //Checks if WidgetData exists, if not => create widget data with key appWidgetId
+        public void checkInitData(int appWidgetId)
+        {
+            if (!sharedPreferences.Contains(KEY_PREFIX_COMMANDS + appWidgetId))
+            {
+                List<string> commandList = new List<string>();
+                List<string> resultList = new List<string>();
+                commandList.Add("CMD: ");
+                resultList.Add("");
+                saveLists(appWidgetId, commandList, resultList);
+            }
+        }
+
+        //Method to save lists to shared preferences
+        public void saveLists(int appWidgetId, List<string> commands, List<string> results)
+        {
+            string commandKey = KEY_PREFIX_COMMANDS + appWidgetId;
+            string resultKey = KEY_PREFIX_RESULTS + appWidgetId;
+
+            string commandsJson = JsonConvert.SerializeObject(commands, jsonSerializerSettings);
+            string resultsJson = JsonConvert.SerializeObject(results,jsonSerializerSettings);
+
+            ISharedPreferencesEditor editor = sharedPreferences.Edit();
+            editor.PutString(commandKey, commandsJson);
+            editor.PutString(resultKey, resultsJson);
+            editor.Apply();
+        }
+
+        //Method to remove last command/result from list
+        public void removeLast(int appWidgetId)
+        {
+            List<string> commands = getCommands(appWidgetId);
+            List<string> results = getResults(appWidgetId);
+            if (commands.Count > 0 && results.Count > 0)
+            {
+                commands.RemoveAt(commands.Count - 1);
+                results.RemoveAt(results.Count - 1);
+            }
+            saveLists(appWidgetId, commands, results);
+        } 
+
+        //Method to grab commands from SharedPreferences
+        public List<string> getCommands(int appWidgetId)
+        {
+            string commandKey = KEY_PREFIX_COMMANDS + appWidgetId;
+            string commandsJson = sharedPreferences.GetString(commandKey, null);
+
+            if(commandsJson != null) 
+            return JsonConvert.DeserializeObject<List<string>>(commandsJson,jsonSerializerSettings);
+            else return new List<string>();
+        }
+
+        //Method to grab results from SharedPreferences
+        public List<string> getResults(int appWidgetId)
+        {
+            string resultKey = KEY_PREFIX_RESULTS + appWidgetId;
+            string resultsJson = sharedPreferences.GetString(resultKey, null);
+
+            if(resultsJson != null)
+            return JsonConvert.DeserializeObject<List<string>>(resultsJson,jsonSerializerSettings);
+            else return new List<string>();
+        }
+
+        //Method to add commands/results to list to SharedPreferences
+        public void addCommand(string command, string result, int appWidgetId)
+        {
+     
+
+            removeLast(appWidgetId);
+
+            List<string> commandList = getCommands(appWidgetId);
+            List<string> resultsList = getResults(appWidgetId);
+
+            commandList.Add("CMD: " + command);
+            resultsList.Add(result);
+            commandList.Add("CMD: ");
+            resultsList.Add("");
+
+            saveLists(appWidgetId,commandList,resultsList);
+        }
+
+        //Method to remove lists from SharedPreferences
+        public void removeLists(int appWidgetId)
+        {
+            if (sharedPreferences.Contains(KEY_PREFIX_COMMANDS + appWidgetId))
+            {
+                ISharedPreferencesEditor editor = sharedPreferences.Edit();
+                editor.Remove(KEY_PREFIX_COMMANDS + appWidgetId);
+                editor.Remove(KEY_PREFIX_RESULTS + appWidgetId);
+                editor.Apply();
+            }
+        }
+
+        //Method to clear the data in list in SharedPreferences
+        public void clearList(int appWidgetId)
+        {
+            List<string> commandList = getCommands(appWidgetId);
+            List<string> resultsList = getResults(appWidgetId);
+
+            commandList.Clear();
+            resultsList.Clear();
+            commandList.Add("CMD: ");
+            resultsList.Add("");
+
+            saveLists(appWidgetId, commandList, resultsList);
+        }
+
+        //Method to get count of commands in SharedPreferences
+        public int getCount(int appWidgetId)
+        {
+            if (sharedPreferences.Contains(KEY_PREFIX_COMMANDS + appWidgetId))
+            {
+                List<string> commandList = getCommands(appWidgetId);
+                return commandList.Count - 1;
+            }
+            else
+                return 0;
+        }
+
+
+
+
+    }
+}

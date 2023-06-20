@@ -1,4 +1,5 @@
 using Android.App;
+using Android.Appwidget;
 using Android.Content;
 using Android.Content.PM;
 
@@ -32,7 +33,9 @@ namespace CommAndroid
                     string userInput = cmdText.Text;
                     Intent intent = new Intent(this, typeof(WidgetProvider));
                     intent.SetAction("com.company.CommAndroid.USER_INPUT_SUBMITTED");
+                    int appWidgetId = Intent.GetIntExtra("appWidgetId", AppWidgetManager.InvalidAppwidgetId);
                     intent.PutExtra("user_input", userInput);
+                    intent.PutExtra("appWidgetId", appWidgetId);
                     intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask); // Add the ClearTop and NewTask flags
                     SendBroadcast(intent);
                     FinishAffinity();
