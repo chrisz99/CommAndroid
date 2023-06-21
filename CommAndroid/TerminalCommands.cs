@@ -27,6 +27,9 @@ using System.ComponentModel.Design;
 using AndroidX.Activity;
 using Java.Util.Jar;
 using System.Text.RegularExpressions;
+using Android.Graphics.Drawables;
+using Android.Content.Res;
+using Android.Views;
 
 namespace CommAndroid
 {
@@ -36,7 +39,9 @@ namespace CommAndroid
         //Helper String for printing the command list
         //Add Commands here to display in Terminal
         public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "rmdir 'path' 'name'","copy 'sourcepath' 'destinationpath'",
-            "ren 'sourcepath' 'newname'","datclear 'appname'","stordat","coinflip","title 'name'"};
+            "ren 'sourcepath' 'newname'","datclear 'appname'","stordat","coinflip","title 'name'", "theme 'color'", "wipewidgetdata","help", "help colors"};
+
+        public static string[] colorList = { "default", "black", "orange", "red", "pink", "purple", "green" };
 
         private static WidgetDataManager widgetDataManager;
 
@@ -121,6 +126,24 @@ namespace CommAndroid
                 helpString +=  "-->" + commands + "\n";
             }
             return helpString;
+        }
+
+        public static string printColors()
+        {
+            string colorString = "List of Colors: \n";
+            foreach(string color in colorList)
+            {
+                colorString += "-->" + color + "\n";
+            }
+            return colorString;
+        }
+
+        public static string printHelpHelper(string[] args)
+        {
+            if (args.Length == 1)
+                return printColors();
+            else
+                return printHelp();
         }
 
         //Actual function to set a reminder
@@ -1144,6 +1167,79 @@ namespace CommAndroid
                 return "Invalid Syntax. (title 'name')";
         }
 
+        //Method to change theme of terminal. Saves to SharedPreferences, loads on update
+        private static string changeTerminalTheme(string[] args, Context context, int appWidgetId)
+        {
+            if (args.Length == 1)
+            {
+                string color = args[0].Trim();
+                WidgetDataManager wm = new WidgetDataManager(context);
+                switch (color.ToLower())
+                {
+                    case "purple":
+                        {
+                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundPurple, Resource.Drawable.widgetbackGroundPurple, Resource.Drawable.terminalViewDrawBlack, "#000000");
+                            return "Theme successfully changed to purple.";
+                        }
+                    case "yellow":
+                        {
+                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundYellow, Resource.Drawable.widgetbackGroundYellow, Resource.Drawable.terminalViewDraw, "#000000");
+                            return "Theme successfully changed to yellow.";
+                        }
+                    case "black":
+                        {
+                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundBlack, Resource.Drawable.widgetbackGroundBlack, Resource.Drawable.terminalViewDrawBlack, "#52db02");
+                            return "Theme successfully changed to black.";
+                        }
+                    case "red":
+                        {
+                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundRed, Resource.Drawable.widgetbackGroundRed, Resource.Drawable.terminalViewDrawBlack, "#000000");
+                            return "Theme successfully changed to red.";
+                        }
+                    case "green":
+                        {
+                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundGreen, Resource.Drawable.widgetbackGroundGreen, Resource.Drawable.terminalViewDrawBlack, "#000000");
+                            return "Theme successfully changed to green.";
+                        }
+                    case "pink":
+                        {
+                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundPink, Resource.Drawable.widgetbackGroundPink, Resource.Drawable.terminalViewDraw, "#000000");
+                            return "Theme successfully changed to pink.";
+                        }
+                    case "orange":
+                        {
+                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundOrange, Resource.Drawable.widgetbackGroundOrange, Resource.Drawable.terminalViewDraw, "#000000");
+                            return "Theme successfully changed to orange.";
+                        }
+                    case "default":
+                        {
+                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGround, Resource.Drawable.widgetbackGround, Resource.Drawable.terminalViewDraw, "#000000");
+                            return "Theme successfully reverted to default.";
+                        }
+                    default:
+                        return "Invalid Operation. Color " + color + " does not exist.";
+           
+                }
+
+            }
+            else
+                return "Invalid Syntax (color 'color')";
+        }
+
+        //Wipes Widget Data from SharedPreferences
+        public static string wipeUserData(Context context, AppWidgetManager awm)
+        {
+            WidgetDataManager wm = new WidgetDataManager(context);
+            ComponentName appWidgetProvider = new ComponentName(context, Java.Lang.Class.FromType(typeof(WidgetProvider)));
+            int[] appWidgetIds = awm.GetAppWidgetIds(appWidgetProvider);
+            wm.wipeData(appWidgetIds);
+            foreach(int appwidgetId in appWidgetIds)
+            {
+                wm.checkInitData(appwidgetId);
+            }
+            return "Successfully wiped all widget data";
+        }
+
 
 
         //Main function that takes a command, (string), and breaks it up to see what method to fire
@@ -1216,10 +1312,18 @@ namespace CommAndroid
                         {
                             return changeTerminalTitleHelper(arguments, view);
                         }
+                    case "theme":
+                        {
+                            return changeTerminalTheme(arguments,context,appWidgetId);
+                        }
+                    case "wipewidgetdata":
+                        {
+                            return wipeUserData(context,appWidgetManager);
+                        }
 
                     //Command List
                     case"help":
-                        return printHelp();
+                        return printHelpHelper(arguments);
 
                     //No Command Found
                     default: return "Invalid Command";

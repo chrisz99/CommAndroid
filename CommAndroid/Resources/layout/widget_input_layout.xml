@@ -11,6 +11,7 @@
         android:layout_width="200dp"
         android:layout_height="100dp"
         android:background="@drawable/widgetbackground"
+        android:id="@+id/inputlayout_background"
         android:orientation="vertical">
 
         <LinearLayout
@@ -22,6 +23,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Terminal Input"
+                android:id="@+id/terminalinput_title"
             android:textStyle="italic"
             android:fontFamily="sans-serif"
             android:paddingStart="10dp"
@@ -49,7 +51,8 @@
             android:layout_width="180dp"
             android:layout_height="70dp"
             android:orientation="vertical"
-            android:background="@drawable/inputlayoutbackground"
+            android:background="@drawable/terminalviewdraw"
+            android:id="@+id/input_background"
             android:layout_gravity="center">
 
             <!--Layout for the Text Input and Label-->

@@ -5,6 +5,7 @@ using Android.Preferences;
 using AndroidX.Preference;
 using System.Collections.Generic;
 using AndroidX.AppCompat.View.Menu;
+using System.Linq;
 
 namespace CommAndroid
 {
@@ -17,6 +18,7 @@ namespace CommAndroid
         private const string PREF_NAME = "WidgetData";
         private const string KEY_PREFIX_COMMANDS = "commands_";
         private const string KEY_PREFIX_RESULTS = "results_";
+        private const string KEY_PREFIX_THEME = "theme_";
 
         private ISharedPreferences sharedPreferences;
         private JsonSerializerSettings jsonSerializerSettings;
@@ -38,8 +40,27 @@ namespace CommAndroid
                 List<string> resultList = new List<string>();
                 commandList.Add("CMD: ");
                 resultList.Add("");
+                saveTheme(appWidgetId, Resource.Drawable.widgetbackGround, Resource.Drawable.widgetbackGround, Resource.Drawable.terminalViewDraw, "#000000");
                 saveLists(appWidgetId, commandList, resultList);
             }
+        }
+
+        //Saves theme to SharedPreferences. (Saves as resource id)
+        public void saveTheme(int appWidgetId, int widgetResourceId, int inputBackgroundResourceId, int inputBoxBackgroundResourceId, string color)
+        {
+            string themeKey = KEY_PREFIX_THEME + appWidgetId;
+
+            ISharedPreferencesEditor editor = sharedPreferences.Edit();
+            editor.PutString(themeKey, widgetResourceId + "_" + inputBackgroundResourceId + "_" + inputBoxBackgroundResourceId + "_" + color);
+            editor.Apply();
+        }
+
+        //Grabs a theme from SharedPreferences by AppWidgetId
+        public string getTheme(int appWidgetId)
+        {
+            string themeKey = KEY_PREFIX_THEME + appWidgetId;
+            string theme = sharedPreferences.GetString(themeKey, null);
+            return theme;
         }
 
         //Method to save lists to shared preferences
@@ -69,6 +90,22 @@ namespace CommAndroid
             }
             saveLists(appWidgetId, commands, results);
         } 
+
+        public void wipeData(int[] appWidgetIds)
+        {
+            ISharedPreferencesEditor editor = sharedPreferences.Edit();
+            IDictionary<string, object> allPreferences = sharedPreferences.All;
+
+            foreach (string key in allPreferences.Keys) {
+                foreach(int appWidgetId in appWidgetIds)
+                {
+                    if (!key.Contains(appWidgetId.ToString()))
+                        editor.Remove(key);
+                }
+            
+            }
+            editor.Apply();
+        }
 
         //Method to grab commands from SharedPreferences
         public List<string> getCommands(int appWidgetId)

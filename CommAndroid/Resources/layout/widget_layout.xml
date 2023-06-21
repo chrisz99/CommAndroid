@@ -6,7 +6,8 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="8dp"
-    android:background="@drawable/widgetbackGround">
+    android:background="@drawable/widgetbackGround"
+    android:id="@+id/widgetbackground_layout">
 
     <!--Layout for the name of the app on top -->
     <LinearLayout
@@ -90,16 +91,18 @@
 
             
               <Button
-			android:layout_width="60dp"
-			android:layout_height="50dp"
+			android:layout_width="55dp"
+			android:layout_height="35dp"
             android:id="@+id/widget_button"
             android:text="CMD"
             android:textAlignment="center"
-                android:textStyle="bold"
+            android:foreground="?android:attr/selectableItemBackground"
             android:autoSizeTextType="uniform"
-            android:autoSizeMaxTextSize="10sp"
+                android:textColor="@android:color/white"
+            android:autoSizeMaxTextSize="12sp"
             android:autoSizeMinTextSize="8sp" 
             android:autoSizeStepGranularity="2sp"
+                android:background="@drawable/roundedbutton"
              android:gravity="center"
             android:layout_gravity="left"
                 android:paddingTop="5dp"
@@ -112,19 +115,22 @@
 
 
                 <Button
-			android:layout_width="60dp"
-			android:layout_height="50dp"
+			android:layout_width="55dp"
+			android:layout_height="35dp"
             android:text="Clear"
-                android:textStyle="bold"
+                 android:textColor="@android:color/white"
+
             android:textAlignment="center"
             android:autoSizeTextType="uniform"
-            android:autoSizeMaxTextSize="10sp"
+            android:autoSizeMaxTextSize="12sp"
             android:autoSizeMinTextSize="8sp" 
             android:autoSizeStepGranularity="2sp"
             android:gravity="center"
+                android:foreground="?android:attr/selectableItemBackground"
             android:layout_gravity="right"
                  android:paddingTop="5dp"
             android:textDirection="ltr"
+            android:background="@drawable/roundedbutton"
             android:id="@+id/delete_button"/>
 
 

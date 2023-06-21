@@ -22,7 +22,7 @@ namespace CommAndroid
         private List<string> results;
         private int appWidgetId;
         private WidgetDataManager widgetDataManager;
-        private Handler handler;
+        private Handler handler; 
 
 
         //Constructor to create list view factory
@@ -41,12 +41,6 @@ namespace CommAndroid
             widgetDataManager = new WidgetDataManager(context);
             items = widgetDataManager.getCommands(appWidgetId);
             results = widgetDataManager.getResults(appWidgetId);
-
-
-
-      
-
-
             
         }
 

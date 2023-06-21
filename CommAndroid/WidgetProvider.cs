@@ -11,14 +11,11 @@ using AndroidX.Preference;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-
-
 namespace CommAndroid
 {
 
-    [BroadcastReceiver(Label = "CommAndroid", Exported = false, Enabled = true, Name = "com.company.CommAndroid.WidgetProvider",Icon ="@mipmap/terminalappicon")]
-    [IntentFilter(new string[] { "android.appwidget.action.APPWIDGET_UPDATE"  })]
+    [BroadcastReceiver(Label = "CommAndroid", Exported = false, Enabled = true, Name = "com.company.CommAndroid.WidgetProvider", Icon = "@mipmap/terminalappicon")]
+    [IntentFilter(new string[] { "android.appwidget.action.APPWIDGET_UPDATE" })]
     [MetaData("android.appwidget.provider", Resource = "@xml/my_widget")]
 
 
@@ -37,10 +34,10 @@ namespace CommAndroid
 
             foreach (int appwidgetId in appWidgetIds)
             {
-            
 
                 // Build the remote views for the widget
                 var widgetView = BuildRemoteViews(context, appwidgetId);
+
 
                 //LogData from shared preferences
                 viewData(context);
@@ -48,9 +45,6 @@ namespace CommAndroid
                 // Update all instances of the widget with the new remote views
                 appWidgetManager.NotifyAppWidgetViewDataChanged(appwidgetId, Resource.Id.listView1);
                 appWidgetManager.UpdateAppWidget(appwidgetId, widgetView);
-       
-
-
 
             }
 
@@ -66,7 +60,7 @@ namespace CommAndroid
 
             //Build New Remote View
             var widgetView = BuildRemoteViews(context, appWidgetId);
-    
+
             // Update widget with the new remote views
             appWidgetManager.NotifyAppWidgetViewDataChanged(appWidgetId, Resource.Id.listView1);
             appWidgetManager.UpdateAppWidget(appWidgetId, widgetView);
@@ -76,7 +70,7 @@ namespace CommAndroid
         //Method To Log SharedPreference Data In Logs
         public void viewData(Context context)
         {
-            ISharedPreferences sharedPreferences = PreferenceManager.GetDefaultSharedPreferences(Android.App.Application.Context);
+            ISharedPreferences sharedPreferences = PreferenceManager.GetDefaultSharedPreferences(context);
 
             // Get all key-value pairs from SharedPreferences
             IDictionary<string, object> allPreferences = sharedPreferences.All;
@@ -88,7 +82,7 @@ namespace CommAndroid
                 object value = preference.Value;
 
                 // Print the key-value pair to the console
-                Log.Debug("Data","Key: " + key + ", Value: " + value);
+                Log.Debug("Data", "Key: " + key + ", Value: " + value);
             }
         }
 
@@ -102,6 +96,11 @@ namespace CommAndroid
             //Initialize WidgetDataManager class to handle Widget Data
             widgetDataManager = new WidgetDataManager(context);
             widgetDataManager.checkInitData(appwidgetId);
+            string theme = widgetDataManager.getTheme(appwidgetId);
+            widgetView.SetInt(Resource.Id.widgetbackground_layout, "setBackgroundResource", int.Parse(theme.Split('_')[0]));
+            widgetView.SetInt(Resource.Id.listView1, "setBackgroundResource", int.Parse(theme.Split('_')[2]));
+            widgetView.SetTextColor(Resource.Id.terminal_title, Android.Graphics.Color.ParseColor(theme.Split('_')[3]));
+
 
             //Initializing an intent for the main widget button click
             var clickIntent = new Intent(context, typeof(WidgetProvider));
@@ -163,8 +162,8 @@ namespace CommAndroid
 
             //Set our view to parameter WidgetView
             var widgetView = views;
+            string result = "";
 
-           
 
             //Checks bool parameter to see if user wants to clear list
             //If user wants to add a command
@@ -172,9 +171,9 @@ namespace CommAndroid
             {
                 //Initialize result that is returned from querying the command through class TerminalCommands
                 //Add the command itself, and the results to the list
-                string result = await TerminalCommands.queryCommand(command, context, appWidgetManager, appWidgetId, widgetView);
+                 result = await TerminalCommands.queryCommand(command, context, appWidgetManager, appWidgetId, widgetView);
                 widgetDataManager.addCommand(command, result, appWidgetId);
-               
+
             }
             //Bool parameter for user clearing list
             else
@@ -184,9 +183,18 @@ namespace CommAndroid
 
             }
 
-            //Update the widget view
+            string theme = widgetDataManager.getTheme(appWidgetId);
+            widgetView.SetInt(Resource.Id.widgetbackground_layout, "setBackgroundResource", int.Parse(theme.Split('_')[0]));
+            widgetView.SetInt(Resource.Id.listView1, "setBackgroundResource", int.Parse(theme.Split('_')[2]));
+            widgetView.SetTextColor(Resource.Id.terminal_title, Android.Graphics.Color.ParseColor(theme.Split('_')[3]));
+
+
+
+
             appWidgetManager.NotifyAppWidgetViewDataChanged(appWidgetId, Resource.Id.listView1);
-            appWidgetManager.UpdateAppWidget(appWidgetId, views);
+                appWidgetManager.UpdateAppWidget(appWidgetId, views);
+ 
+   
 
 
         }
@@ -220,16 +228,16 @@ namespace CommAndroid
                 //Grab appWidgetId from delete button, build new RemoteViews, clear the list
                 int appWidgetId = intent.GetIntExtra("appWidgetId", AppWidgetManager.InvalidAppwidgetId);
                 var widgetView = BuildRemoteViews(context, appWidgetId);
-                updateListView(context, widgetView, true, "",appWidgetId);
+                updateListView(context, widgetView, true, "", appWidgetId);
             }
             //User input
             else if (intent.Action == "com.company.CommAndroid.USER_INPUT_SUBMITTED")
             {
                 //Grab appWidgetId and command from input activity, build new RemoteViews, update the list with command
                 string command = intent.GetStringExtra("user_input");
-                int appWidgetId = intent.GetIntExtra("appWidgetId",AppWidgetManager.InvalidAppwidgetId);
+                int appWidgetId = intent.GetIntExtra("appWidgetId", AppWidgetManager.InvalidAppwidgetId);
                 var widgetView = BuildRemoteViews(context, appWidgetId);
-                updateListView(context, widgetView, false, command,appWidgetId);
+                updateListView(context, widgetView, false, command, appWidgetId);
             }
 
             //Possible future feature

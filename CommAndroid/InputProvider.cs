@@ -22,6 +22,12 @@ namespace CommAndroid
             //Create a view for our input layout, find the EditText view
             View popupView = LayoutInflater.FromContext(this).Inflate(Resource.Layout.widget_input_layout, null);
             EditText cmdText = popupView.FindViewById<EditText>(Resource.Id.cmd_input);
+            WidgetDataManager widgetDataManager = new WidgetDataManager(this);
+            int appWidgetId = Intent.GetIntExtra("appWidgetId", AppWidgetManager.InvalidAppwidgetId);
+            string theme = widgetDataManager.getTheme(appWidgetId);
+            popupView.FindViewById<LinearLayout>(Resource.Id.inputlayout_background).SetBackgroundResource(int.Parse(theme.Split('_')[1]));
+            popupView.FindViewById<LinearLayout>(Resource.Id.input_background).SetBackgroundResource(int.Parse(theme.Split('_')[2]));
+            popupView.FindViewById<TextView>(Resource.Id.terminalinput_title).SetTextColor(Android.Graphics.Color.ParseColor(theme.Split('_')[3]));
 
             //Event for our EditText field, handles submitting input to the widget provider          
             cmdText.EditorAction += (sender, e) =>
@@ -33,7 +39,7 @@ namespace CommAndroid
                     string userInput = cmdText.Text;
                     Intent intent = new Intent(this, typeof(WidgetProvider));
                     intent.SetAction("com.company.CommAndroid.USER_INPUT_SUBMITTED");
-                    int appWidgetId = Intent.GetIntExtra("appWidgetId", AppWidgetManager.InvalidAppwidgetId);
+
                     intent.PutExtra("user_input", userInput);
                     intent.PutExtra("appWidgetId", appWidgetId);
                     intent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask); // Add the ClearTop and NewTask flags
