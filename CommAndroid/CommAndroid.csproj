@@ -88,7 +88,6 @@
     <Compile Include="WidgetDataManager.cs" />
     <Compile Include="WidgetProvider.cs" />
     <Compile Include="WidgetRemoteViewService.cs" />
-    <Compile Include="WidgetTheme.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />

@@ -182,12 +182,12 @@ namespace CommAndroid
                 widgetView.SetEmptyView(Resource.Id.listView1, Resource.Id.empty_view);
 
             }
-
+            string title = widgetDataManager.getTitle(appWidgetId);
             string theme = widgetDataManager.getTheme(appWidgetId);
             widgetView.SetInt(Resource.Id.widgetbackground_layout, "setBackgroundResource", int.Parse(theme.Split('_')[0]));
             widgetView.SetInt(Resource.Id.listView1, "setBackgroundResource", int.Parse(theme.Split('_')[2]));
             widgetView.SetTextColor(Resource.Id.terminal_title, Android.Graphics.Color.ParseColor(theme.Split('_')[3]));
-
+            widgetView.SetTextViewText(Resource.Id.terminal_title, title);
 
 
 

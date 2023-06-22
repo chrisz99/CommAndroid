@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="2.0" package="com.companyname.commandroid">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="2.5" package="com.companyname.commandroid">
 	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33" />
 	<application android:allowBackup="true" android:label="@string/app_name" android:supportsRtl="true" android:theme="@style/AppTheme" android:requestLegacyExternalStorage="true" android:icon="@mipmap/terminalappicon"></application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

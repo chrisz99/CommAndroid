@@ -38,7 +38,7 @@ namespace CommAndroid
         //Global Vars
         //Helper String for printing the command list
         //Add Commands here to display in Terminal
-        public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","mkdir 'path' 'name'", "rmdir 'path' 'name'","copy 'sourcepath' 'destinationpath'",
+        public static string[] commandList = { "txt 'name/num' 'message'", "rem 'hours:minutes' 'title'", "dir 'path'","del 'filepaths'","mkdir 'paths' 'name'", "rmdir 'paths' 'name'","copy 'sourcepath' 'destinationpath'",
             "ren 'sourcepath' 'newname'","datclear 'appname'","stordat","coinflip","title 'name'", "theme 'color'", "wipewidgetdata","help", "help colors"};
 
         public static string[] colorList = { "default", "black", "orange", "red", "pink", "purple", "green" };
@@ -123,7 +123,7 @@ namespace CommAndroid
             string helpString = "List of Commands: \n";
             foreach (string commands in commandList)
             {
-                helpString +=  "-->" + commands + "\n";
+                helpString +=  "--> " + commands + "\n";
             }
             return helpString;
         }
@@ -133,7 +133,7 @@ namespace CommAndroid
             string colorString = "List of Colors: \n";
             foreach(string color in colorList)
             {
-                colorString += "-->" + color + "\n";
+                colorString += "--> " + color + "\n";
             }
             return colorString;
         }
@@ -141,7 +141,12 @@ namespace CommAndroid
         public static string printHelpHelper(string[] args)
         {
             if (args.Length == 1)
-                return printColors();
+            {
+                if (args[0].ToLower().Trim() == "colors")
+                    return printColors();
+                else
+                    return "Invalid Command. Did you mean (help colors)?";
+            }
             else
                 return printHelp();
         }
@@ -595,9 +600,9 @@ namespace CommAndroid
                 string defaultPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, arguments[0]);
 
                 //If directory exists with path given
-                //Initialize string[] for folder names, strings for result and list, int for existCount, and list for doesn'tExist
+                //Initialize string[] for folder names, strings for result and list, int for existCount, and list for doesn't Exist
                 //Since we are not making use of a CD command, we have to utilize other means of figuring out whether the user wants.
-                //Either to delete at the default directory, or with the path specified. We do this by checking the strings in the arguments.
+                //to delete at the default directory, or with the path specified. We do this by checking the strings in the arguments.
                 //Checking if they are foldernames, and if they exist as a directory and incrementing the existCount int
                 //If the existCount is greater than 0, we know the user wants to delete at the default directory.
 
@@ -1140,28 +1145,84 @@ namespace CommAndroid
                 return "Invalid Syntax. (ren 'sourcepath' 'newname')";
             
         }
+
+        private static string deleteFile(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+                return "File successfully deleted at path " + filePath;
+            }
+            else
+                return "Invalid Operation. File does not exist at path " + filePath;
+                
+
+           
+        }
+
+        private static string deleteFileHelper(string[] args)
+        {
+            string defaultPath = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
+
+            if (args.Length == 1)
+            {
+                string userInputPath = args[0];
+                userInputPath = removeUnderscore(userInputPath);
+                string filePath = Path.Combine(defaultPath, userInputPath);
+                return deleteFile(filePath);
+            }
+            else if(args.Length > 1)
+            {
+                List<string> doesntExist = new List<string>();
+                
+                for (int i = 0; i < args.Length; i++)
+                    args[i] = removeUnderscore(args[i]);
+
+                foreach(string userInputPath in args)
+                {
+                    string filePath = Path.Combine(defaultPath, userInputPath);
+                    if (!File.Exists(filePath))
+                    {
+                        doesntExist.Add(filePath.Substring(filePath.LastIndexOf('/')));
+                    }
+                        
+                }
+
+                if (doesntExist.Count > 0)
+                    return "Invalid Operation. " + string.Join(',', doesntExist) + " doesn't exist.";
+                else
+                {
+                    foreach(string filePath in args)
+                        deleteFile(Path.Combine(defaultPath,filePath));
+                    return "Files " + string.Join(',', args) + " have been successfully deleted.";
+                }
+            }
+            else
+                return "Invalid Syntax. (del 'filePath')";
+        }
       
         //Method to change the title of the terminal window
-        private static string changeTerminalTitle(string title, RemoteViews view)
+        private static string changeTerminalTitle(string title, Context context, int appWidgetId)
         {
-            view.SetTextViewText(Resource.Id.terminal_title, title);
+            widgetDataManager = new WidgetDataManager(context);
+            widgetDataManager.saveTitle(appWidgetId,title);
             return "Successfully changed title to " + title;
         }
 
         //Helper function to change title of terminal window
         //Can use spaces with this one
-        private static string changeTerminalTitleHelper(string[] args, RemoteViews view)
+        private static string changeTerminalTitleHelper(string[] args, Context context, int appWidgetId)
         {
 
             if (args.Length == 1)
             {
                 string title = args[0];
-                return changeTerminalTitle(title, view);
+                return changeTerminalTitle(title, context,appWidgetId);
             }
             else if(args.Length > 1)
             {
                 string title = string.Join(' ', args);
-                return changeTerminalTitle(title, view);
+                return changeTerminalTitle(title, context, appWidgetId);
             }
             else
                 return "Invalid Syntax. (title 'name')";
@@ -1173,47 +1234,47 @@ namespace CommAndroid
             if (args.Length == 1)
             {
                 string color = args[0].Trim();
-                WidgetDataManager wm = new WidgetDataManager(context);
+                widgetDataManager = new WidgetDataManager(context);
                 switch (color.ToLower())
                 {
                     case "purple":
                         {
-                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundPurple, Resource.Drawable.widgetbackGroundPurple, Resource.Drawable.terminalViewDrawBlack, "#000000");
+                            widgetDataManager.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundPurple, Resource.Drawable.widgetbackGroundPurple, Resource.Drawable.terminalViewDrawBlack, "#000000");
                             return "Theme successfully changed to purple.";
                         }
                     case "yellow":
                         {
-                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundYellow, Resource.Drawable.widgetbackGroundYellow, Resource.Drawable.terminalViewDraw, "#000000");
+                            widgetDataManager.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundYellow, Resource.Drawable.widgetbackGroundYellow, Resource.Drawable.terminalViewDraw, "#000000");
                             return "Theme successfully changed to yellow.";
                         }
                     case "black":
                         {
-                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundBlack, Resource.Drawable.widgetbackGroundBlack, Resource.Drawable.terminalViewDrawBlack, "#52db02");
+                            widgetDataManager.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundBlack, Resource.Drawable.widgetbackGroundBlack, Resource.Drawable.terminalViewDrawBlack, "#52db02");
                             return "Theme successfully changed to black.";
                         }
                     case "red":
                         {
-                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundRed, Resource.Drawable.widgetbackGroundRed, Resource.Drawable.terminalViewDrawBlack, "#000000");
+                            widgetDataManager.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundRed, Resource.Drawable.widgetbackGroundRed, Resource.Drawable.terminalViewDrawBlack, "#000000");
                             return "Theme successfully changed to red.";
                         }
                     case "green":
                         {
-                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundGreen, Resource.Drawable.widgetbackGroundGreen, Resource.Drawable.terminalViewDrawBlack, "#000000");
+                            widgetDataManager.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundGreen, Resource.Drawable.widgetbackGroundGreen, Resource.Drawable.terminalViewDrawBlack, "#000000");
                             return "Theme successfully changed to green.";
                         }
                     case "pink":
                         {
-                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundPink, Resource.Drawable.widgetbackGroundPink, Resource.Drawable.terminalViewDraw, "#000000");
+                           widgetDataManager.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundPink, Resource.Drawable.widgetbackGroundPink, Resource.Drawable.terminalViewDraw, "#000000");
                             return "Theme successfully changed to pink.";
                         }
                     case "orange":
                         {
-                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundOrange, Resource.Drawable.widgetbackGroundOrange, Resource.Drawable.terminalViewDraw, "#000000");
+                            widgetDataManager.saveTheme(appWidgetId, Resource.Drawable.widgetbackGroundOrange, Resource.Drawable.widgetbackGroundOrange, Resource.Drawable.terminalViewDraw, "#000000");
                             return "Theme successfully changed to orange.";
                         }
                     case "default":
                         {
-                            wm.saveTheme(appWidgetId, Resource.Drawable.widgetbackGround, Resource.Drawable.widgetbackGround, Resource.Drawable.terminalViewDraw, "#000000");
+                            widgetDataManager.saveTheme(appWidgetId, Resource.Drawable.widgetbackGround, Resource.Drawable.widgetbackGround, Resource.Drawable.terminalViewDraw, "#000000");
                             return "Theme successfully reverted to default.";
                         }
                     default:
@@ -1229,13 +1290,13 @@ namespace CommAndroid
         //Wipes Widget Data from SharedPreferences
         public static string wipeUserData(Context context, AppWidgetManager awm)
         {
-            WidgetDataManager wm = new WidgetDataManager(context);
+            widgetDataManager = new WidgetDataManager(context);
             ComponentName appWidgetProvider = new ComponentName(context, Java.Lang.Class.FromType(typeof(WidgetProvider)));
             int[] appWidgetIds = awm.GetAppWidgetIds(appWidgetProvider);
-            wm.wipeData(appWidgetIds);
+            widgetDataManager.wipeData(appWidgetIds);
             foreach(int appwidgetId in appWidgetIds)
             {
-                wm.checkInitData(appwidgetId);
+               widgetDataManager.checkInitData(appwidgetId);
             }
             return "Successfully wiped all widget data";
         }
@@ -1310,11 +1371,15 @@ namespace CommAndroid
                         }
                     case "title":
                         {
-                            return changeTerminalTitleHelper(arguments, view);
+                            return changeTerminalTitleHelper(arguments, context, appWidgetId);
                         }
                     case "theme":
                         {
                             return changeTerminalTheme(arguments,context,appWidgetId);
+                        }
+                    case "del":
+                        {
+                            return deleteFileHelper(arguments); 
                         }
                     case "wipewidgetdata":
                         {

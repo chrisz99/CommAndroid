@@ -19,6 +19,7 @@ namespace CommAndroid
         private const string KEY_PREFIX_COMMANDS = "commands_";
         private const string KEY_PREFIX_RESULTS = "results_";
         private const string KEY_PREFIX_THEME = "theme_";
+        private const string KEY_PREFIX_TITLE = "title_";
 
         private ISharedPreferences sharedPreferences;
         private JsonSerializerSettings jsonSerializerSettings;
@@ -42,7 +43,24 @@ namespace CommAndroid
                 resultList.Add("");
                 saveTheme(appWidgetId, Resource.Drawable.widgetbackGround, Resource.Drawable.widgetbackGround, Resource.Drawable.terminalViewDraw, "#000000");
                 saveLists(appWidgetId, commandList, resultList);
+                saveTitle(appWidgetId, "Terminal Window");
             }
+        }
+
+        public void saveTitle(int appWidgetId, string title)
+        {
+            string titleKey = KEY_PREFIX_TITLE + appWidgetId;
+            ISharedPreferencesEditor editor = sharedPreferences.Edit();
+            editor.PutString(titleKey, title);
+            editor.Apply();
+        }
+
+        public string getTitle(int appWidgetId)
+        {
+            string titleKey = KEY_PREFIX_TITLE + appWidgetId;
+
+            return sharedPreferences.GetString(titleKey, null);
+
         }
 
         //Saves theme to SharedPreferences. (Saves as resource id)
